@@ -4,6 +4,8 @@ export interface Link {
   title: string;
   tags: string[];
   createdAt: number;
+  read: boolean;
+  favorited: boolean;
 }
 
-export type NewLink = Omit<Link, "id" | "createdAt">;
+export type NewLink = Omit<Link, "id" | "createdAt" | "read" | "favorited">;

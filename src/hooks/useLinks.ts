@@ -1,41 +1,111 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { createClient } from "@/lib/supabase";
 import type { Link, NewLink } from "@/types/link";
 
-const STORAGE_KEY = "linkstash_links";
-
-export function useLinks() {
+export function useLinks(userId: string | null) {
   const [links, setLinks] = useState<Link[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const supabase = createClient();
 
+  // Load links from Supabase on mount / when user changes
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setLinks(JSON.parse(raw));
-    } catch {
-      // corrupted storage — start fresh
+    if (!userId) {
+      setLinks([]);
+      setHydrated(true);
+      return;
     }
-    setHydrated(true);
+
+    setHydrated(false);
+
+    supabase
+      .from("links")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        if (data) {
+          setLinks(
+            data.map((row) => ({
+              id: row.id,
+              url: row.url,
+              title: row.title,
+              tags: row.tags ?? [],
+              createdAt: new Date(row.created_at).getTime(),
+              read: row.read,
+              favorited: row.favorited,
+            }))
+          );
+        }
+        setHydrated(true);
+      });
+  }, [userId]);
+
+  const addLink = useCallback(
+    async (data: NewLink) => {
+      if (!userId) return;
+      const { data: row, error } = await supabase
+        .from("links")
+        .insert({
+          user_id: userId,
+          url: data.url,
+          title: data.title,
+          tags: data.tags,
+          read: false,
+          favorited: false,
+        })
+        .select()
+        .single();
+
+      if (!error && row) {
+        setLinks((prev) => [
+          {
+            id: row.id,
+            url: row.url,
+            title: row.title,
+            tags: row.tags ?? [],
+            createdAt: new Date(row.created_at).getTime(),
+            read: row.read,
+            favorited: row.favorited,
+          },
+          ...prev,
+        ]);
+      }
+    },
+    [userId]
+  );
+
+  const deleteLink = useCallback(
+    async (id: string) => {
+      await supabase.from("links").delete().eq("id", id);
+      setLinks((prev) => prev.filter((l) => l.id !== id));
+    },
+    []
+  );
+
+  const markRead = useCallback(async (id: string) => {
+    await supabase.from("links").update({ read: true }).eq("id", id);
+    setLinks((prev) => prev.map((l) => (l.id === id ? { ...l, read: true } : l)));
   }, []);
 
-  useEffect(() => {
-    if (!hydrated) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(links));
-  }, [links, hydrated]);
-
-  const addLink = useCallback((data: NewLink) => {
-    const newLink: Link = {
-      ...data,
-      id: crypto.randomUUID(),
-      createdAt: Date.now(),
-    };
-    setLinks((prev) => [newLink, ...prev]);
+  const markUnread = useCallback(async (id: string) => {
+    await supabase.from("links").update({ read: false }).eq("id", id);
+    setLinks((prev) => prev.map((l) => (l.id === id ? { ...l, read: false } : l)));
   }, []);
 
-  const deleteLink = useCallback((id: string) => {
-    setLinks((prev) => prev.filter((l) => l.id !== id));
-  }, []);
+  const toggleFavorite = useCallback(
+    async (id: string) => {
+      const link = links.find((l) => l.id === id);
+      if (!link) return;
+      const next = !link.favorited;
+      await supabase.from("links").update({ favorited: next }).eq("id", id);
+      setLinks((prev) =>
+        prev.map((l) => (l.id === id ? { ...l, favorited: next } : l))
+      );
+    },
+    [links]
+  );
 
-  return { links, addLink, deleteLink, hydrated };
+  return { links, addLink, deleteLink, markRead, markUnread, toggleFavorite, hydrated };
 }
