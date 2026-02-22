@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { useLinks } from "@/hooks/useLinks";
 import { useAuth } from "@/hooks/useAuth";
@@ -18,6 +18,18 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [activeTags, setActiveTags] = useState<string[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("unread");
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!e.metaKey) return;
+      if (e.key === "1") { e.preventDefault(); setActiveTab("unread"); }
+      if (e.key === "2") { e.preventDefault(); setActiveTab("read"); }
+      if (e.key === "3") { e.preventDefault(); setActiveTab("favorites"); }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
 
   const handleTagToggle = (tag: string) => {
     setActiveTags((prev) =>
@@ -122,7 +134,7 @@ export default function Home() {
         </section>
 
         {hydrated && (
-          <Tabs defaultValue="unread">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="mb-4">
               <TabsTrigger value="unread">
                 Unread
