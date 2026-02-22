@@ -59,7 +59,7 @@ export function SearchToggle({
       <button
         onClick={handleToggle}
         aria-label={open ? "Close search" : "Open search"}
-        className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+        className="cursor-pointer inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
       >
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.2" />

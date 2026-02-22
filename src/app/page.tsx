@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
 import { useLinks } from "@/hooks/useLinks";
 import { useAuth } from "@/hooks/useAuth";
 import { AddLinkForm } from "@/components/AddLinkForm";
@@ -11,10 +10,21 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { LoginScreen } from "@/components/LoginScreen";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useShareToken } from "@/hooks/useShareToken";
 import type { NewLink } from "@/types/link";
 
 export default function Home() {
   const { user, loading, sendMagicLink, signOut } = useAuth();
+  const { shareToken } = useShareToken(user?.id ?? null);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyShareLink = () => {
+    if (!shareToken) return;
+    navigator.clipboard.writeText(`${window.location.origin}/share/${shareToken}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
   const { links, addLink, deleteLink, markRead, markUnread, toggleFavorite, hydrated } = useLinks(user?.id ?? null);
   const [query, setQuery] = useState("");
   const [activeTags, setActiveTags] = useState<string[]>([]);
@@ -87,7 +97,7 @@ export default function Home() {
             <h1 className="text-lg font-semibold text-foreground tracking-tight">LinkStash</h1>
             <p className="text-sm text-muted-foreground mt-0.5">Your personal link library</p>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0">
             {links.length > 0 && (
               <SearchToggle
                 open={searchOpen}
@@ -96,12 +106,30 @@ export default function Home() {
                 onQueryChange={setQuery}
               />
             )}
+            {shareToken && (
+              <button
+                onClick={handleCopyShareLink}
+                aria-label="Copy share link"
+                title="Copy favorites share link"
+                className="cursor-pointer inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              >
+                {copied ? (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                ) : (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 3v13M7 8l5-5 5 5M20 16v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2" />
+                  </svg>
+                )}
+              </button>
+            )}
             <ThemeToggle />
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <button
                   aria-label="Sign out"
-                  className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors ml-1"
+                  className="cursor-pointer inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
                   title="Sign out"
                 >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -134,48 +162,61 @@ export default function Home() {
               <kbd className="font-sans">a</kbd> to add · <kbd className="font-sans">⌘1</kbd> <kbd className="font-sans">⌘2</kbd> <kbd className="font-sans">⌘3</kbd> to switch tabs
             </p>
           </div>
-          {allTags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-4">
-              {allTags.map((tag) => (
-                <button
-                  key={tag}
-                  onClick={() => handleTagToggle(tag)}
-                  className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
-                >
-                  <Badge
-                    variant={activeTags.includes(tag) ? "default" : "secondary"}
-                    className="cursor-pointer font-normal"
-                  >
-                    {tag}
-                  </Badge>
-                </button>
-              ))}
-            </div>
-          )}
         </section>
 
         {hydrated && (
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="unread">
-                Unread
-                {unread.length > 0 && (
-                  <span className="ml-1.5 text-xs text-muted-foreground">{unread.length}</span>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="read">
-                Read
-                {read.length > 0 && (
-                  <span className="ml-1.5 text-xs text-muted-foreground">{read.length}</span>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="favorites">
-                Favorites
-                {favorites.length > 0 && (
-                  <span className="ml-1.5 text-xs text-muted-foreground">{favorites.length}</span>
-                )}
-              </TabsTrigger>
-            </TabsList>
+            <div className="flex items-center justify-between mb-4">
+              <TabsList>
+                <TabsTrigger value="unread">
+                  Unread
+                  {unread.length > 0 && (
+                    <span className="ml-1.5 text-xs text-muted-foreground">{unread.length}</span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="read">
+                  Read
+                  {read.length > 0 && (
+                    <span className="ml-1.5 text-xs text-muted-foreground">{read.length}</span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="favorites">
+                  Favorites
+                  {favorites.length > 0 && (
+                    <span className="ml-1.5 text-xs text-muted-foreground">{favorites.length}</span>
+                  )}
+                </TabsTrigger>
+              </TabsList>
+
+              {allTags.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="cursor-pointer inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-accent">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="4" y1="6" x2="20" y2="6" />
+                        <line x1="8" y1="12" x2="16" y2="12" />
+                        <line x1="11" y1="18" x2="13" y2="18" />
+                      </svg>
+                      Filter
+                      {activeTags.length > 0 && (
+                        <span className="text-foreground font-medium">{activeTags.length}</span>
+                      )}
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {allTags.map((tag) => (
+                      <DropdownMenuCheckboxItem
+                        key={tag}
+                        checked={activeTags.includes(tag)}
+                        onCheckedChange={() => handleTagToggle(tag)}
+                      >
+                        {tag}
+                      </DropdownMenuCheckboxItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
 
             <TabsContent value="unread">
               <LinkList

@@ -11,7 +11,7 @@ export function ThemeToggle() {
   useEffect(() => setMounted(true), []);
 
   // Render a placeholder on the server to avoid hydration mismatch
-  if (!mounted) return <div className="w-9 h-9" />;
+  if (!mounted) return <div className="w-8 h-8" />;
 
   const isDark = theme === "dark";
 
@@ -21,7 +21,7 @@ export function ThemeToggle() {
       size="icon"
       onClick={() => setTheme(isDark ? "light" : "dark")}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      className="text-muted-foreground hover:text-foreground"
+      className="size-8 text-muted-foreground hover:text-foreground"
     >
       {isDark ? (
         // Sun icon
