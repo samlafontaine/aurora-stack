@@ -22,7 +22,8 @@ export function LoginScreen({ onSendMagicLink }: LoginScreenProps) {
     const { error } = await onSendMagicLink(email.trim());
     setLoading(false);
     if (error) {
-      setError("Something went wrong. Please try again.");
+      const msg = error instanceof Error ? error.message : String(error);
+      setError(msg || "Something went wrong. Please try again.");
     } else {
       setSent(true);
     }
