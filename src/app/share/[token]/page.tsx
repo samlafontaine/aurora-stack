@@ -3,7 +3,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@/lib/supabase";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { SearchToggle } from "@/components/SearchToggle";
 import { Badge } from "@/components/ui/badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { Link } from "@/types/link";
 
 interface Props {
@@ -17,6 +19,7 @@ export default function SharePage({ params }: Props) {
   const [notFound, setNotFound] = useState(false);
   const [query, setQuery] = useState("");
   const [activeTags, setActiveTags] = useState<string[]>([]);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     params.then((p) => setToken(p.token));
@@ -115,36 +118,50 @@ export default function SharePage({ params }: Props) {
             <h1 className="text-lg font-semibold text-foreground tracking-tight">Favorites</h1>
             <p className="text-sm text-muted-foreground mt-0.5">A curated reading list</p>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-0">
+            {links.length > 0 && (
+              <SearchToggle
+                open={searchOpen}
+                onOpenChange={setSearchOpen}
+                query={query}
+                onQueryChange={setQuery}
+              />
+            )}
+            <ThemeToggle />
+          </div>
         </header>
 
-        {/* Search */}
-        <div className="mb-6 flex flex-col gap-3">
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search..."
-            className="w-full text-sm bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:border-foreground text-foreground placeholder:text-muted-foreground transition-colors"
-          />
-          {allTags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {allTags.map((tag) => (
-                <button
-                  key={tag}
-                  onClick={() => handleTagToggle(tag)}
-                  className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
-                >
-                  <Badge
-                    variant={activeTags.includes(tag) ? "default" : "secondary"}
-                    className="cursor-pointer font-normal"
+        {/* Filter dropdown */}
+        {allTags.length > 0 && (
+          <div className="flex justify-end mb-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="cursor-pointer inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-accent">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="4" y1="6" x2="20" y2="6" />
+                    <line x1="8" y1="12" x2="16" y2="12" />
+                    <line x1="11" y1="18" x2="13" y2="18" />
+                  </svg>
+                  Filter
+                  {activeTags.length > 0 && (
+                    <span className="text-foreground font-medium">{activeTags.length}</span>
+                  )}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {allTags.map((tag) => (
+                  <DropdownMenuCheckboxItem
+                    key={tag}
+                    checked={activeTags.includes(tag)}
+                    onCheckedChange={() => handleTagToggle(tag)}
                   >
                     {tag}
-                  </Badge>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
 
         {/* Links */}
         {filtered.length === 0 ? (
@@ -180,6 +197,18 @@ export default function SharePage({ params }: Props) {
             ))}
           </div>
         )}
+
+        <footer className="mt-12 pt-6 border-t border-border text-center">
+          <p className="text-xs text-muted-foreground">
+            Save and share your own favorite links.{" "}
+            <a
+              href="https://aurora-stack.vercel.app/"
+              className="text-foreground hover:text-foreground/70 underline underline-offset-2 transition-colors"
+            >
+              Create a free account
+            </a>
+          </p>
+        </footer>
       </div>
     </div>
   );
