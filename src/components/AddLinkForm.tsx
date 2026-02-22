@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { TagInput } from "@/components/TagInput";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,19 @@ export function AddLinkForm({ onAdd }: AddLinkFormProps) {
   const [fetchedTitle, setFetchedTitle] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState(false);
   const lastFetchedUrl = useRef<string>("");
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement).isContentEditable) return;
+      if (e.key === "a" && !e.metaKey && !e.ctrlKey) {
+        e.preventDefault();
+        setOpen(true);
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
 
   const reset = () => {
     setUrl("");
@@ -122,11 +135,12 @@ export function AddLinkForm({ onAdd }: AddLinkFormProps) {
               }}
               placeholder="https://..."
               autoFocus
+              className="truncate"
             />
             {urlError && <p className="text-destructive text-xs pl-1">{urlError}</p>}
 
             {(isFetching || fetchedTitle) && (
-              <p className="text-xs text-muted-foreground pl-1 truncate">
+              <p className="text-xs text-muted-foreground pl-1 break-all">
                 {isFetching ? "Fetching title…" : `Title: ${fetchedTitle}`}
               </p>
             )}

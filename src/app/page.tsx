@@ -10,6 +10,7 @@ import { LinkList } from "@/components/LinkList";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LoginScreen } from "@/components/LoginScreen";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import type { NewLink } from "@/types/link";
 
 export default function Home() {
@@ -96,23 +97,43 @@ export default function Home() {
               />
             )}
             <ThemeToggle />
-            <button
-              onClick={signOut}
-              aria-label="Sign out"
-              className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors ml-1"
-              title="Sign out"
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-            </button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button
+                  aria-label="Sign out"
+                  className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors ml-1"
+                  title="Sign out"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Sign out?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    You'll need to use your magic link to sign back in.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={signOut}>Sign out</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </header>
 
         <section className="mb-8">
-          <AddLinkForm onAdd={(data: NewLink) => addLink(data)} />
+          <div className="flex items-center justify-between">
+            <AddLinkForm onAdd={(data: NewLink) => addLink(data)} />
+            <p className="text-xs text-muted-foreground/50 select-none">
+              <kbd className="font-sans">a</kbd> to add · <kbd className="font-sans">⌘1</kbd> <kbd className="font-sans">⌘2</kbd> <kbd className="font-sans">⌘3</kbd> to switch tabs
+            </p>
+          </div>
           {allTags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-4">
               {allTags.map((tag) => (

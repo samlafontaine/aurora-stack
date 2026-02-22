@@ -33,29 +33,29 @@ export function LinkCard({ link, onDelete, onMarkRead, onMarkUnread, onToggleFav
   })();
 
   return (
-    <Card className="group flex items-start justify-between gap-4 p-4 hover:border-border/60 transition-colors rounded-xl">
-      <div className="flex flex-col gap-1 min-w-0">
+    <Card className="group flex flex-col gap-2 p-4 hover:border-border/60 transition-colors rounded-xl overflow-hidden">
+      <div className="flex flex-col gap-1 min-w-0 overflow-hidden w-full">
         <a
           href={link.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm font-medium text-foreground hover:text-foreground/70 truncate transition-colors"
+          className="text-sm font-medium text-foreground hover:text-foreground/70 truncate transition-colors block"
         >
           {link.title}
         </a>
         <p className="text-xs text-muted-foreground truncate">{hostname}</p>
-        {link.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1">
-            {link.tags.map((tag) => (
-              <Badge key={tag} variant="secondary" className="text-xs font-normal">
-                {tag}
-              </Badge>
-            ))}
-          </div>
-        )}
       </div>
 
-      <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all shrink-0 mt-0.5">
+      <div className="flex items-center justify-between">
+        <div className="flex flex-wrap gap-1">
+          {link.tags.map((tag) => (
+            <Badge key={tag} variant="secondary" className="text-xs font-normal">
+              {tag}
+            </Badge>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all shrink-0">
         {/* Favorite toggle */}
         <button
           onClick={() => onToggleFavorite(link.id)}
@@ -110,7 +110,7 @@ export function LinkCard({ link, onDelete, onMarkRead, onMarkUnread, onToggleFav
             <AlertDialogHeader>
               <AlertDialogTitle>Delete this link?</AlertDialogTitle>
               <AlertDialogDescription>
-                &ldquo;{link.title}&rdquo; will be permanently removed from your library.
+                &ldquo;<span className="break-all">{link.title}</span>&rdquo; will be permanently removed from your library.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -124,6 +124,7 @@ export function LinkCard({ link, onDelete, onMarkRead, onMarkUnread, onToggleFav
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        </div>
       </div>
     </Card>
   );
