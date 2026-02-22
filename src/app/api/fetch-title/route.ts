@@ -47,10 +47,25 @@ export async function GET(req: NextRequest) {
 
   try {
     const html = await fetchHtml(url);
-    const match = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-    const title = match ? match[1].trim().replace(/\s+/g, " ") : null;
-    return NextResponse.json({ title });
+    const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+    const title = titleMatch ? titleMatch[1].trim().replace(/\s+/g, " ") : null;
+
+    // Extract og:image
+    const ogMatch = html.match(/<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["'][^>]*>/i)
+      || html.match(/<meta[^>]*content=["']([^"']+)["'][^>]*property=["']og:image["'][^>]*>/i);
+    let image = ogMatch ? ogMatch[1].trim() : null;
+
+    // Resolve relative URLs
+    if (image && !image.startsWith("http")) {
+      try {
+        image = new URL(image, url).href;
+      } catch {
+        image = null;
+      }
+    }
+
+    return NextResponse.json({ title, image });
   } catch {
-    return NextResponse.json({ title: null });
+    return NextResponse.json({ title: null, image: null });
   }
 }

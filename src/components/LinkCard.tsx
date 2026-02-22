@@ -33,34 +33,44 @@ export function LinkCard({ link, onDelete, onMarkRead, onMarkUnread, onToggleFav
   })();
 
   return (
-    <Card className="group flex flex-col gap-2 p-4 hover:border-border/60 transition-colors rounded-xl overflow-hidden">
-      <div className="flex flex-col gap-1 min-w-0 overflow-hidden w-full">
-        <a
-          href={link.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-sm font-medium text-foreground hover:text-foreground/70 truncate transition-colors block"
-        >
-          {link.title}
-        </a>
-        <p className="text-xs text-muted-foreground truncate">{hostname}</p>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div className="flex flex-wrap gap-1">
-          {link.tags.map((tag) => (
-            <Badge key={tag} variant="secondary" className="text-xs font-normal">
-              {tag}
-            </Badge>
-          ))}
+    <Card className={`group flex flex-row gap-0 p-0 hover:border-border/60 transition-colors rounded-xl overflow-hidden ${link.image ? "sm:h-24" : ""}`}>
+      {link.image && (
+        <div className="hidden sm:block w-1/4 shrink-0">
+          <img
+            src={link.image}
+            alt=""
+            className="h-full w-full object-cover"
+          />
+        </div>
+      )}
+      <div className="flex flex-col gap-2 p-4 min-w-0 flex-1">
+        <div className="flex flex-col gap-1 min-w-0 overflow-hidden w-full">
+          <a
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm font-medium text-foreground hover:text-foreground/70 truncate transition-colors block"
+          >
+            {link.title}
+          </a>
+          <p className="text-xs text-muted-foreground truncate">{hostname}</p>
         </div>
 
-        <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all shrink-0">
+        <div className="flex items-center justify-between">
+          <div className="flex flex-wrap gap-1">
+            {link.tags.map((tag) => (
+              <Badge key={tag} variant="secondary" className="text-xs font-normal">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-1.5 sm:opacity-0 sm:group-hover:opacity-100 transition-all shrink-0">
         {/* Favorite toggle */}
         <button
           onClick={() => onToggleFavorite(link.id)}
           aria-label={link.favorited ? "Unfavorite" : "Favorite"}
-          className={`transition-colors ${link.favorited ? "text-amber-400 opacity-100!" : "text-muted-foreground hover:text-amber-400"}`}
+          className={`cursor-pointer transition-colors ${link.favorited ? "text-amber-400 opacity-100!" : "text-muted-foreground hover:text-amber-400"}`}
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill={link.favorited ? "currentColor" : "none"} xmlns="http://www.w3.org/2000/svg">
             <path d="M8 1.5l1.8 3.6 4 .6-2.9 2.8.7 4L8 10.4l-3.6 1.9.7-4L2.2 5.7l4-.6L8 1.5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
@@ -71,7 +81,7 @@ export function LinkCard({ link, onDelete, onMarkRead, onMarkUnread, onToggleFav
         <button
           onClick={() => link.read ? onMarkUnread(link.id) : onMarkRead(link.id)}
           aria-label={link.read ? "Mark as unread" : "Mark as read"}
-          className="text-muted-foreground hover:text-foreground transition-colors"
+          className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
         >
           {link.read ? (
             // Filled check circle — already read
@@ -92,7 +102,7 @@ export function LinkCard({ link, onDelete, onMarkRead, onMarkUnread, onToggleFav
           <AlertDialogTrigger asChild>
             <button
               aria-label="Delete link"
-              className="text-muted-foreground hover:text-foreground transition-colors"
+              className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
@@ -124,6 +134,7 @@ export function LinkCard({ link, onDelete, onMarkRead, onMarkUnread, onToggleFav
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+          </div>
         </div>
       </div>
     </Card>

@@ -35,6 +35,7 @@ export function useLinks(userId: string | null) {
               createdAt: new Date(row.created_at).getTime(),
               read: row.read,
               favorited: row.favorited,
+              image: row.image ?? null,
             }))
           );
         }
@@ -52,6 +53,7 @@ export function useLinks(userId: string | null) {
           url: data.url,
           title: data.title,
           tags: data.tags,
+          image: data.image,
           read: false,
           favorited: false,
         })
@@ -68,6 +70,7 @@ export function useLinks(userId: string | null) {
             createdAt: new Date(row.created_at).getTime(),
             read: row.read,
             favorited: row.favorited,
+            image: row.image ?? null,
           },
           ...prev,
         ]);

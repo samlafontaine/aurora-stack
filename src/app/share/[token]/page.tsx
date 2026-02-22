@@ -58,6 +58,7 @@ export default function SharePage({ params }: Props) {
             createdAt: new Date(row.created_at).getTime(),
             read: row.read,
             favorited: row.favorited,
+            image: row.image ?? null,
           }))
         );
         setLoading(false);
@@ -176,23 +177,30 @@ export default function SharePage({ params }: Props) {
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group flex flex-col gap-2 p-4 rounded-xl border border-border hover:border-border/60 bg-card transition-colors overflow-hidden"
+                className={`group flex flex-row gap-0 rounded-xl border border-border hover:border-border/60 bg-card transition-colors overflow-hidden ${link.image ? "sm:h-24" : ""}`}
               >
-                <div className="flex flex-col gap-1 min-w-0 overflow-hidden">
-                  <p className="text-sm font-medium text-foreground group-hover:text-foreground/70 truncate transition-colors">
-                    {link.title}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate">{hostname(link.url)}</p>
-                </div>
-                {link.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {link.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-xs font-normal">
-                        {tag}
-                      </Badge>
-                    ))}
+                {link.image && (
+                  <div className="hidden sm:block w-1/4 shrink-0">
+                    <img src={link.image} alt="" className="h-full w-full object-cover" />
                   </div>
                 )}
+                <div className="flex flex-col gap-2 p-4 min-w-0 flex-1">
+                  <div className="flex flex-col gap-1 min-w-0 overflow-hidden">
+                    <p className="text-sm font-medium text-foreground group-hover:text-foreground/70 truncate transition-colors">
+                      {link.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">{hostname(link.url)}</p>
+                  </div>
+                  {link.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {link.tags.map((tag) => (
+                        <Badge key={tag} variant="secondary" className="text-xs font-normal">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </a>
             ))}
           </div>

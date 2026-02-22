@@ -158,7 +158,7 @@ export default function Home() {
         <section className="mb-8">
           <div className="flex items-center justify-between">
             <AddLinkForm onAdd={(data: NewLink) => addLink(data)} />
-            <p className="text-xs text-muted-foreground/50 select-none">
+            <p className="text-xs text-muted-foreground/50 select-none hidden sm:block">
               <kbd className="font-sans">a</kbd> to add · <kbd className="font-sans">⌘1</kbd> <kbd className="font-sans">⌘2</kbd> <kbd className="font-sans">⌘3</kbd> to switch tabs
             </p>
           </div>

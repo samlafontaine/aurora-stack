@@ -23,6 +23,7 @@ export function AddLinkForm({ onAdd }: AddLinkFormProps) {
   const [tags, setTags] = useState<string[]>([]);
   const [urlError, setUrlError] = useState<string | null>(null);
   const [fetchedTitle, setFetchedTitle] = useState<string | null>(null);
+  const [fetchedImage, setFetchedImage] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState(false);
   const lastFetchedUrl = useRef<string>("");
 
@@ -44,6 +45,7 @@ export function AddLinkForm({ onAdd }: AddLinkFormProps) {
     setTags([]);
     setUrlError(null);
     setFetchedTitle(null);
+    setFetchedImage(null);
     setIsFetching(false);
     lastFetchedUrl.current = "";
   };
@@ -74,11 +76,13 @@ export function AddLinkForm({ onAdd }: AddLinkFormProps) {
     lastFetchedUrl.current = normalized;
     setIsFetching(true);
     setFetchedTitle(null);
+    setFetchedImage(null);
 
     try {
       const res = await fetch(`/api/fetch-title?url=${encodeURIComponent(normalized)}`);
       const data = await res.json();
       setFetchedTitle(data.title || new URL(normalized).hostname);
+      setFetchedImage(data.image || null);
     } catch {
       setFetchedTitle(new URL(normalized).hostname);
     } finally {
@@ -98,7 +102,7 @@ export function AddLinkForm({ onAdd }: AddLinkFormProps) {
     }
 
     const resolvedTitle = fetchedTitle || new URL(normalizedUrl).hostname;
-    onAdd({ url: normalizedUrl, title: resolvedTitle, tags });
+    onAdd({ url: normalizedUrl, title: resolvedTitle, tags, image: fetchedImage });
     handleOpenChange(false);
   };
 
