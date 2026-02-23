@@ -99,47 +99,80 @@ export default function Home() {
             <p className="text-sm text-muted-foreground mt-0.5">Your personal link library</p>
           </div>
           <div className="flex items-center gap-0">
+            <TooltipProvider>
             {links.length > 0 && (
-              <SearchToggle
-                open={searchOpen}
-                onOpenChange={setSearchOpen}
-                query={query}
-                onQueryChange={setQuery}
-              />
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex">
+                    <SearchToggle
+                      open={searchOpen}
+                      onOpenChange={setSearchOpen}
+                      query={query}
+                      onQueryChange={setQuery}
+                    />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" sideOffset={8}>
+                  Search
+                </TooltipContent>
+              </Tooltip>
             )}
             {shareToken && (
-              <button
-                onClick={handleCopyShareLink}
-                aria-label="Copy share link"
-                title="Copy favorites share link"
-                className="cursor-pointer inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-              >
-                {copied ? (
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                ) : (
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 3v13M7 8l5-5 5 5M20 16v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2" />
-                  </svg>
-                )}
-              </button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={handleCopyShareLink}
+                      aria-label="Copy share link"
+                      className="cursor-pointer inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    >
+                      {copied ? (
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      ) : (
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 3v13M7 8l5-5 5 5M20 16v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2" />
+                        </svg>
+                      )}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" sideOffset={8}>
+                    {copied ? "Copied!" : "Copy favorites share link"}
+                  </TooltipContent>
+                </Tooltip>
             )}
-            <ThemeToggle />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-flex">
+                  <ThemeToggle />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" sideOffset={8}>
+                Toggle theme
+              </TooltipContent>
+            </Tooltip>
             <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <button
-                  aria-label="Sign out"
-                  className="cursor-pointer inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-                  title="Sign out"
-                >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                    <polyline points="16 17 21 12 16 7" />
-                    <line x1="21" y1="12" x2="9" y2="12" />
-                  </svg>
-                </button>
-              </AlertDialogTrigger>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex">
+                    <AlertDialogTrigger asChild>
+                      <button
+                        aria-label="Sign out"
+                        className="cursor-pointer inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                          <polyline points="16 17 21 12 16 7" />
+                          <line x1="21" y1="12" x2="9" y2="12" />
+                        </svg>
+                      </button>
+                    </AlertDialogTrigger>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" sideOffset={8}>
+                  Sign out
+                </TooltipContent>
+              </Tooltip>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Sign out?</AlertDialogTitle>
@@ -153,6 +186,7 @@ export default function Home() {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+            </TooltipProvider>
           </div>
         </header>
 
