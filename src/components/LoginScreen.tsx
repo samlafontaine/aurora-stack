@@ -5,27 +5,34 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface LoginScreenProps {
-  onSendMagicLink: (email: string) => Promise<{ error: unknown }>;
+  onSignIn: (email: string, password: string) => Promise<{ error: unknown }>;
+  onSignUp: (email: string, password: string) => Promise<{ error: unknown }>;
 }
 
-export function LoginScreen({ onSendMagicLink }: LoginScreenProps) {
+export function LoginScreen({ onSignIn, onSignUp }: LoginScreenProps) {
   const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
+  const [password, setPassword] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [signUpSuccess, setSignUpSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) return;
+    if (!email.trim() || !password) return;
     setLoading(true);
     setError("");
-    const { error } = await onSendMagicLink(email.trim());
+
+    const { error } = isSignUp
+      ? await onSignUp(email.trim(), password)
+      : await onSignIn(email.trim(), password);
+
     setLoading(false);
     if (error) {
       const msg = error instanceof Error ? error.message : String(error);
       setError(msg || "Something went wrong. Please try again.");
-    } else {
-      setSent(true);
+    } else if (isSignUp) {
+      setSignUpSuccess(true);
     }
   };
 
@@ -41,18 +48,18 @@ export function LoginScreen({ onSendMagicLink }: LoginScreenProps) {
             <p className="text-sm text-muted-foreground mt-1.5">Your personal link library</p>
           </div>
 
-          {sent ? (
+          {signUpSuccess ? (
             <div className="text-center flex flex-col gap-2">
               <p className="text-sm text-foreground font-medium">Check your inbox</p>
               <p className="text-sm text-muted-foreground">
-                We sent a magic link to <span className="text-foreground">{email}</span>.<br />
-                Click it to sign in — no password needed.
+                We sent a confirmation link to <span className="text-foreground">{email}</span>.<br />
+                Click it to verify your account, then sign in.
               </p>
               <button
-                onClick={() => setSent(false)}
+                onClick={() => { setSignUpSuccess(false); setIsSignUp(false); }}
                 className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4 mt-2 cursor-pointer transition-colors"
               >
-                Use a different email
+                Back to sign in
               </button>
             </div>
           ) : (
@@ -65,10 +72,29 @@ export function LoginScreen({ onSendMagicLink }: LoginScreenProps) {
                 required
                 className="w-full text-sm bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:border-foreground text-foreground placeholder:text-muted-foreground transition-colors"
               />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                required
+                minLength={6}
+                className="w-full text-sm bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:border-foreground text-foreground placeholder:text-muted-foreground transition-colors"
+              />
               {error && <p className="text-xs text-destructive">{error}</p>}
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Sending…" : "Send magic link"}
+                {loading
+                  ? (isSignUp ? "Creating account…" : "Signing in…")
+                  : (isSignUp ? "Create account" : "Sign in")
+                }
               </Button>
+              <button
+                type="button"
+                onClick={() => { setIsSignUp(!isSignUp); setError(""); }}
+                className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4 mt-1 cursor-pointer transition-colors text-center"
+              >
+                {isSignUp ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
+              </button>
             </form>
           )}
         </div>
