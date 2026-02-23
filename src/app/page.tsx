@@ -11,6 +11,7 @@ import { LoginScreen } from "@/components/LoginScreen";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useShareToken } from "@/hooks/useShareToken";
 import type { NewLink } from "@/types/link";
 
@@ -156,37 +157,61 @@ export default function Home() {
         </header>
 
         <section className="mb-8">
-          <div className="flex items-center justify-between">
-            <AddLinkForm onAdd={(data: NewLink) => addLink(data)} />
-            <p className="text-xs text-muted-foreground/50 select-none hidden sm:block">
-              <kbd className="font-sans">a</kbd> to add · <kbd className="font-sans">⌘1</kbd> <kbd className="font-sans">⌘2</kbd> <kbd className="font-sans">⌘3</kbd> to switch tabs
-            </p>
-          </div>
+          <AddLinkForm onAdd={(data: NewLink) => addLink(data)} />
         </section>
 
         {hydrated && (
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <div className="flex items-center justify-between mb-4">
-              <TabsList>
-                <TabsTrigger value="unread">
-                  Unread
-                  {unread.length > 0 && (
-                    <span className="ml-1.5 text-xs text-muted-foreground">{unread.length}</span>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger value="read">
-                  Read
-                  {read.length > 0 && (
-                    <span className="ml-1.5 text-xs text-muted-foreground">{read.length}</span>
-                  )}
-                </TabsTrigger>
-                <TabsTrigger value="favorites">
-                  Favorites
-                  {favorites.length > 0 && (
-                    <span className="ml-1.5 text-xs text-muted-foreground">{favorites.length}</span>
-                  )}
-                </TabsTrigger>
-              </TabsList>
+              <TooltipProvider>
+                <TabsList>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span>
+                        <TabsTrigger value="unread">
+                          Unread
+                          {unread.length > 0 && (
+                            <span className="ml-1.5 text-xs text-muted-foreground">{unread.length}</span>
+                          )}
+                        </TabsTrigger>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" sideOffset={8}>
+                      Unread <kbd className="ml-1.5 font-sans text-[10px] opacity-60">⌘1</kbd>
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span>
+                        <TabsTrigger value="read">
+                          Read
+                          {read.length > 0 && (
+                            <span className="ml-1.5 text-xs text-muted-foreground">{read.length}</span>
+                          )}
+                        </TabsTrigger>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" sideOffset={8}>
+                      Read <kbd className="ml-1.5 font-sans text-[10px] opacity-60">⌘2</kbd>
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span>
+                        <TabsTrigger value="favorites">
+                          Favorites
+                          {favorites.length > 0 && (
+                            <span className="ml-1.5 text-xs text-muted-foreground">{favorites.length}</span>
+                          )}
+                        </TabsTrigger>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" sideOffset={8}>
+                      Favorites <kbd className="ml-1.5 font-sans text-[10px] opacity-60">⌘3</kbd>
+                    </TooltipContent>
+                  </Tooltip>
+                </TabsList>
+              </TooltipProvider>
 
               {allTags.length > 0 && (
                 <DropdownMenu>
