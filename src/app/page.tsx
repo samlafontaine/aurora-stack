@@ -113,7 +113,7 @@ export default function Home() {
                   </span>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" sideOffset={8}>
-                  Search
+                  Search <kbd className="ml-1.5 font-sans text-[10px] opacity-60">⌘k</kbd>
                 </TooltipContent>
               </Tooltip>
             )}
@@ -191,7 +191,7 @@ export default function Home() {
         </header>
 
         <section className="mb-8">
-          <AddLinkForm onAdd={(data: NewLink) => addLink(data)} />
+          <AddLinkForm onAdd={(data: NewLink) => addLink(data)} allTags={allTags} />
         </section>
 
         {hydrated && (

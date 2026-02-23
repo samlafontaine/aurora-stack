@@ -15,9 +15,10 @@ import type { NewLink } from "@/types/link";
 
 interface AddLinkFormProps {
   onAdd: (data: NewLink) => void;
+  allTags?: string[];
 }
 
-export function AddLinkForm({ onAdd }: AddLinkFormProps) {
+export function AddLinkForm({ onAdd, allTags = [] }: AddLinkFormProps) {
   const [open, setOpen] = useState(false);
   const [url, setUrl] = useState("");
   const [tags, setTags] = useState<string[]>([]);
@@ -151,7 +152,7 @@ export function AddLinkForm({ onAdd }: AddLinkFormProps) {
             )}
           </div>
 
-          <TagInput tags={tags} onChange={setTags} />
+          <TagInput tags={tags} onChange={setTags} suggestions={allTags} />
 
           <div className="flex justify-end gap-2 pt-1">
             <Button
