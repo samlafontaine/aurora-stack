@@ -113,7 +113,7 @@ export default function Home() {
                   </span>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" sideOffset={8}>
-                  Search <kbd className="ml-1.5 font-sans text-[10px] opacity-60">⌘k</kbd>
+                  Search
                 </TooltipContent>
               </Tooltip>
             )}
