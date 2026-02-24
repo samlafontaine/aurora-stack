@@ -16,10 +16,14 @@ import type { NewLink } from "@/types/link";
 interface AddLinkFormProps {
   onAdd: (data: NewLink) => void;
   allTags?: string[];
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function AddLinkForm({ onAdd, allTags = [] }: AddLinkFormProps) {
-  const [open, setOpen] = useState(false);
+export function AddLinkForm({ onAdd, allTags = [], open: controlledOpen, onOpenChange: controlledOnOpenChange }: AddLinkFormProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = controlledOnOpenChange ?? setInternalOpen;
   const [url, setUrl] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [urlError, setUrlError] = useState<string | null>(null);
@@ -107,18 +111,22 @@ export function AddLinkForm({ onAdd, allTags = [] }: AddLinkFormProps) {
     handleOpenChange(false);
   };
 
+  const isControlled = controlledOpen !== undefined;
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          className="text-muted-foreground hover:text-foreground px-3 py-2 gap-2"
-        >
-          <span className="text-lg leading-none">+</span>
-          Add link
-          <kbd className="hidden sm:inline text-[10px] opacity-40 font-sans ml-1">a</kbd>
-        </Button>
-      </DialogTrigger>
+      {!isControlled && (
+        <DialogTrigger asChild>
+          <Button
+            variant="ghost"
+            className="text-muted-foreground hover:text-foreground px-3 py-2 gap-2"
+          >
+            <span className="text-lg leading-none">+</span>
+            Add link
+            <kbd className="hidden sm:inline text-[10px] opacity-40 font-sans ml-1">a</kbd>
+          </Button>
+        </DialogTrigger>
+      )}
 
       <DialogContent className="sm:max-w-md">
         <DialogHeader>

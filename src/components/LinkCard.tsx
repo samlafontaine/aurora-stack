@@ -46,9 +46,7 @@ export function LinkCard({ link, onDelete, onMarkRead, onMarkUnread, onToggleFav
       <div className="flex flex-col gap-2 p-4 min-w-0 flex-1">
         <div className="flex flex-col gap-1 min-w-0 overflow-hidden w-full">
           <a
-            href={link.url}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={`/read?url=${encodeURIComponent(link.url)}`}
             className="text-sm font-medium text-foreground hover:text-foreground/70 truncate transition-colors block"
           >
             {link.title}

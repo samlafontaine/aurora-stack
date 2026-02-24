@@ -31,6 +31,7 @@ export default function Home() {
   const [activeTags, setActiveTags] = useState<string[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("unread");
+  const [addLinkOpen, setAddLinkOpen] = useState(false);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -190,9 +191,7 @@ export default function Home() {
           </div>
         </header>
 
-        <section className="mb-8">
-          <AddLinkForm onAdd={(data: NewLink) => addLink(data)} allTags={allTags} />
-        </section>
+        <AddLinkForm onAdd={(data: NewLink) => addLink(data)} allTags={allTags} open={addLinkOpen} onOpenChange={setAddLinkOpen} />
 
         {hydrated && (
           <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -247,6 +246,17 @@ export default function Home() {
                 </TabsList>
               </TooltipProvider>
 
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setAddLinkOpen(true)}
+                  className="cursor-pointer inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-accent"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  Add
+                </button>
               {allTags.length > 0 && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -268,6 +278,7 @@ export default function Home() {
                         key={tag}
                         checked={activeTags.includes(tag)}
                         onCheckedChange={() => handleTagToggle(tag)}
+                        onSelect={(e) => e.preventDefault()}
                       >
                         {tag}
                       </DropdownMenuCheckboxItem>
@@ -275,6 +286,7 @@ export default function Home() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
+              </div>
             </div>
 
             <TabsContent value="unread">
