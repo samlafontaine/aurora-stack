@@ -114,7 +114,7 @@ export function AddLinkForm({ onAdd }: AddLinkFormProps) {
           className="text-muted-foreground hover:text-foreground px-3 py-2 gap-2"
         >
           <span className="text-lg leading-none">+</span>
-          Add link
+          <span className="hidden sm:inline">Add link</span>
           <kbd className="hidden sm:inline text-[10px] opacity-40 font-sans ml-1">a</kbd>
         </Button>
       </DialogTrigger>
