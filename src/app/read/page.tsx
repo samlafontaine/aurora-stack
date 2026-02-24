@@ -4,6 +4,8 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 interface Article {
   title: string;
@@ -15,9 +17,20 @@ interface Article {
 function ReaderContent() {
   const searchParams = useSearchParams();
   const url = searchParams.get("url");
+  const { user, loading: authLoading } = useAuth();
   const [article, setArticle] = useState<Article | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = () => {
+    if (!url) return;
+    const shareUrl = `${window.location.origin}/read?url=${encodeURIComponent(url)}`;
+    navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    toast.success("Link copied to clipboard");
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   useEffect(() => {
     if (!url) {
@@ -52,12 +65,16 @@ function ReaderContent() {
       <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-2xl px-4 py-12">
           <header className="mb-10 flex items-center justify-between">
-            <a
-              href="/"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              &larr; Back
-            </a>
+            {user ? (
+              <a
+                href="/"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                &larr; Back
+              </a>
+            ) : (
+              <span className="text-sm font-medium text-foreground tracking-tight">Aurora</span>
+            )}
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -103,12 +120,16 @@ function ReaderContent() {
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-2xl px-4 py-12">
         <header className="mb-10 flex items-center justify-between">
-          <a
-            href="/"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            &larr; Back
-          </a>
+          {user ? (
+            <a
+              href="/"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              &larr; Back
+            </a>
+          ) : (
+            <span className="text-sm font-medium text-foreground tracking-tight">Aurora</span>
+          )}
           <div className="flex items-center gap-1">
             <TooltipProvider>
               <Tooltip>
@@ -142,6 +163,28 @@ function ReaderContent() {
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
+                  <button
+                    onClick={handleShare}
+                    aria-label="Share article"
+                    className="inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
+                  >
+                    {copied ? (
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    ) : (
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 3v13M7 8l5-5 5 5M20 16v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2" />
+                      </svg>
+                    )}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" sideOffset={8}>
+                  {copied ? "Copied!" : "Share article"}
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
                   <span className="inline-flex">
                     <ThemeToggle />
                   </span>
@@ -169,6 +212,20 @@ function ReaderContent() {
             dangerouslySetInnerHTML={{ __html: article.content }}
           />
         </article>
+
+        {!authLoading && !user && (
+          <footer className="mt-12 pt-6 border-t border-border text-center">
+            <p className="text-xs text-muted-foreground">
+              Save and share your own favorite links.{" "}
+              <a
+                href="https://aurora-stack.vercel.app/"
+                className="text-foreground hover:text-foreground/70 underline underline-offset-2 transition-colors"
+              >
+                Create a free account
+              </a>
+            </p>
+          </footer>
+        )}
       </div>
     </div>
   );
