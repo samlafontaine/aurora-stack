@@ -1,48 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { JSDOM } from "jsdom";
 import { Readability } from "@mozilla/readability";
-import https from "https";
-import http from "http";
 
-function fetchHtml(url: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const client = url.startsWith("https") ? https : http;
-    const req = client.get(
-      url,
-      {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; LinkStash/1.0)",
-          Accept: "text/html",
-        },
-        rejectUnauthorized: false,
-        timeout: 10000,
-      },
-      (res) => {
-        if (
-          res.statusCode &&
-          res.statusCode >= 300 &&
-          res.statusCode < 400 &&
-          res.headers.location
-        ) {
-          const location = res.headers.location.startsWith("http")
-            ? res.headers.location
-            : new URL(res.headers.location, url).href;
-          resolve(fetchHtml(location));
-          return;
-        }
+export const runtime = "nodejs";
 
-        const chunks: Buffer[] = [];
-        res.on("data", (chunk) => chunks.push(chunk));
-        res.on("end", () => resolve(Buffer.concat(chunks).toString("utf-8")));
-        res.on("error", reject);
-      }
-    );
-    req.on("error", reject);
-    req.on("timeout", () => {
-      req.destroy();
-      reject(new Error("timeout"));
-    });
+async function fetchHtml(url: string): Promise<string> {
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    },
+    redirect: "follow",
+    signal: AbortSignal.timeout(10000),
   });
+
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}`);
+  }
+
+  return res.text();
 }
 
 export async function GET(req: NextRequest) {
