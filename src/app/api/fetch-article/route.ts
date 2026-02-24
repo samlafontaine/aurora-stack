@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { JSDOM } from "jsdom";
+import { parseHTML } from "linkedom";
 import { Readability } from "@mozilla/readability";
 
 export const runtime = "nodejs";
@@ -31,8 +31,12 @@ export async function GET(req: NextRequest) {
 
   try {
     const html = await fetchHtml(url);
-    const dom = new JSDOM(html, { url });
-    const reader = new Readability(dom.window.document);
+    const { document } = parseHTML(html);
+
+    // Set documentURI for Readability to resolve relative URLs
+    Object.defineProperty(document, "documentURI", { value: url });
+
+    const reader = new Readability(document as unknown as Document);
     const article = reader.parse();
 
     if (!article) {
