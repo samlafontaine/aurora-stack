@@ -5,6 +5,7 @@ import { useEffect, useState, Suspense } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
+import { useLinks } from "@/hooks/useLinks";
 import { toast } from "sonner";
 
 interface Article {
@@ -18,10 +19,30 @@ function ReaderContent() {
   const searchParams = useSearchParams();
   const url = searchParams.get("url");
   const { user, loading: authLoading } = useAuth();
+  const { links, markRead, markUnread, toggleFavorite } = useLinks(user?.id ?? null);
   const [article, setArticle] = useState<Article | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+
+  const matchingLink = links.find((l) => l.url === url);
+
+  const handleToggleFavorite = () => {
+    if (!matchingLink) return;
+    toggleFavorite(matchingLink.id);
+    toast.success(matchingLink.favorited ? "Removed from favorites" : "Added to favorites");
+  };
+
+  const handleToggleRead = () => {
+    if (!matchingLink) return;
+    if (matchingLink.read) {
+      markUnread(matchingLink.id);
+      toast.success("Marked as unread");
+    } else {
+      markRead(matchingLink.id);
+      toast.success("Marked as read");
+    }
+  };
 
   const handleShare = () => {
     if (!url) return;
@@ -183,6 +204,49 @@ function ReaderContent() {
                   {copied ? "Copied!" : "Share article"}
                 </TooltipContent>
               </Tooltip>
+              {matchingLink && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={handleToggleFavorite}
+                      aria-label={matchingLink.favorited ? "Unfavorite" : "Favorite"}
+                      className={`inline-flex items-center justify-center size-8 rounded-md transition-colors cursor-pointer ${matchingLink.favorited ? "text-amber-400" : "text-muted-foreground hover:text-amber-400"}`}
+                    >
+                      <svg width="15" height="15" viewBox="0 0 16 16" fill={matchingLink.favorited ? "currentColor" : "none"} xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 1.5l1.8 3.6 4 .6-2.9 2.8.7 4L8 10.4l-3.6 1.9.7-4L2.2 5.7l4-.6L8 1.5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+                      </svg>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" sideOffset={8}>
+                    {matchingLink.favorited ? "Remove from favorites" : "Add to favorites"}
+                  </TooltipContent>
+                </Tooltip>
+              )}
+              {matchingLink && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={handleToggleRead}
+                      aria-label={matchingLink.read ? "Mark as unread" : "Mark as read"}
+                      className="inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
+                    >
+                      {matchingLink.read ? (
+                        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.2" />
+                          <path d="M5 8l2 2 4-4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      ) : (
+                        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.2" />
+                        </svg>
+                      )}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" sideOffset={8}>
+                    {matchingLink.read ? "Mark as unread" : "Mark as read"}
+                  </TooltipContent>
+                </Tooltip>
+              )}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span className="inline-flex">

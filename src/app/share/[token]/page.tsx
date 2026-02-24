@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { createClient } from "@/lib/supabase";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SearchToggle } from "@/components/SearchToggle";
@@ -20,6 +20,22 @@ export default function SharePage({ params }: Props) {
   const [query, setQuery] = useState("");
   const [activeTags, setActiveTags] = useState<string[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (searchOpen) searchInputRef.current?.focus();
+  }, [searchOpen]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && searchOpen) {
+        setSearchOpen(false);
+        setQuery("");
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [searchOpen]);
 
   useEffect(() => {
     params.then((p) => setToken(p.token));
@@ -131,6 +147,20 @@ export default function SharePage({ params }: Props) {
             <ThemeToggle />
           </div>
         </header>
+
+        <div
+          className={`sm:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+            searchOpen ? "max-h-16 opacity-100 mb-6" : "max-h-0 opacity-0"
+          }`}
+        >
+          <input
+            ref={searchInputRef}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search links..."
+            className="w-full text-sm bg-background border border-border rounded-md px-3 py-2 focus:outline-none focus:border-foreground text-foreground placeholder:text-muted-foreground transition-colors"
+          />
+        </div>
 
         {/* Filter dropdown */}
         {allTags.length > 0 && (

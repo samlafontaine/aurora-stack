@@ -21,17 +21,6 @@ export function SearchToggle({
     if (open) inputRef.current?.focus();
   }, [open]);
 
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onOpenChange(false);
-        onQueryChange("");
-      }
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [onOpenChange, onQueryChange]);
-
   const handleToggle = () => {
     if (open) {
       onOpenChange(false);
@@ -44,8 +33,8 @@ export function SearchToggle({
   return (
     <div className="flex items-center gap-2">
       <div
-        className={`overflow-hidden transition-all duration-300 ease-in-out ${
-          open ? "w-44 opacity-100" : "w-0 opacity-0"
+        className={`hidden sm:block overflow-hidden transition-all duration-300 ease-in-out ${
+          open ? "sm:w-44 opacity-100" : "sm:w-0 opacity-0"
         }`}
       >
         <input
