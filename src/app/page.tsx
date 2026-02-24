@@ -14,6 +14,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMe
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useShareToken } from "@/hooks/useShareToken";
 import type { NewLink } from "@/types/link";
+import { toast } from "sonner";
 
 export default function Home() {
   const { user, loading, signUp, signIn, signOut } = useAuth();
@@ -43,6 +44,27 @@ export default function Home() {
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, []);
+
+  const handleDelete = (id: string) => {
+    deleteLink(id);
+    toast.success("Link deleted");
+  };
+
+  const handleMarkRead = (id: string) => {
+    markRead(id);
+    toast.success("Marked as read");
+  };
+
+  const handleMarkUnread = (id: string) => {
+    markUnread(id);
+    toast.success("Marked as unread");
+  };
+
+  const handleToggleFavorite = (id: string) => {
+    const link = links.find((l) => l.id === id);
+    toggleFavorite(id);
+    toast.success(link?.favorited ? "Removed from favorites" : "Added to favorites");
+  };
 
   const handleTagToggle = (tag: string) => {
     setActiveTags((prev) =>
@@ -191,7 +213,7 @@ export default function Home() {
           </div>
         </header>
 
-        <AddLinkForm onAdd={(data: NewLink) => addLink(data)} allTags={allTags} open={addLinkOpen} onOpenChange={setAddLinkOpen} />
+        <AddLinkForm onAdd={(data: NewLink) => { addLink(data); toast.success("Link added"); }} allTags={allTags} open={addLinkOpen} onOpenChange={setAddLinkOpen} />
 
         {hydrated && (
           <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -247,16 +269,25 @@ export default function Home() {
               </TooltipProvider>
 
               <div className="flex items-center gap-1">
-                <button
-                  onClick={() => setAddLinkOpen(true)}
-                  className="cursor-pointer inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-accent"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                  Add
-                </button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => setAddLinkOpen(true)}
+                        className="cursor-pointer inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-accent"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="12" y1="5" x2="12" y2="19" />
+                          <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        Add
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" sideOffset={8}>
+                      Add a link <kbd className="ml-1.5 font-sans text-[10px] opacity-60">a</kbd>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               {allTags.length > 0 && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -292,10 +323,10 @@ export default function Home() {
             <TabsContent value="unread">
               <LinkList
                 links={filteredUnread}
-                onDelete={deleteLink}
-                onMarkRead={markRead}
-                onMarkUnread={markUnread}
-                onToggleFavorite={toggleFavorite}
+                onDelete={handleDelete}
+                onMarkRead={handleMarkRead}
+                onMarkUnread={handleMarkUnread}
+                onToggleFavorite={handleToggleFavorite}
                 isFiltering={isFiltering}
                 emptyMessage="No unread links. Add one above or check your read list."
               />
@@ -304,10 +335,10 @@ export default function Home() {
             <TabsContent value="read">
               <LinkList
                 links={filteredRead}
-                onDelete={deleteLink}
-                onMarkRead={markRead}
-                onMarkUnread={markUnread}
-                onToggleFavorite={toggleFavorite}
+                onDelete={handleDelete}
+                onMarkRead={handleMarkRead}
+                onMarkUnread={handleMarkUnread}
+                onToggleFavorite={handleToggleFavorite}
                 isFiltering={isFiltering}
                 emptyMessage="Nothing here yet. Mark a link as read and it'll show up here."
               />
@@ -316,10 +347,10 @@ export default function Home() {
             <TabsContent value="favorites">
               <LinkList
                 links={filteredFavorites}
-                onDelete={deleteLink}
-                onMarkRead={markRead}
-                onMarkUnread={markUnread}
-                onToggleFavorite={toggleFavorite}
+                onDelete={handleDelete}
+                onMarkRead={handleMarkRead}
+                onMarkUnread={handleMarkUnread}
+                onToggleFavorite={handleToggleFavorite}
                 isFiltering={isFiltering}
                 emptyMessage="No favorites yet. Star a link to save it here."
               />
