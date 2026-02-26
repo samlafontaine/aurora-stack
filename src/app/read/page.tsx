@@ -94,7 +94,7 @@ function ReaderContent() {
                 &larr; Back
               </a>
             ) : (
-              <span className="text-sm font-medium text-foreground tracking-tight">Aurora</span>
+              <span className="text-sm font-medium text-foreground tracking-tight">Spara</span>
             )}
             <TooltipProvider>
               <Tooltip>
@@ -149,7 +149,7 @@ function ReaderContent() {
               &larr; Back
             </a>
           ) : (
-            <span className="text-sm font-medium text-foreground tracking-tight">Aurora</span>
+            <span className="text-sm font-medium text-foreground tracking-tight">Spara</span>
           )}
           <div className="flex items-center gap-1">
             <TooltipProvider>
@@ -282,7 +282,7 @@ function ReaderContent() {
             <p className="text-xs text-muted-foreground">
               Save and share your own favorite links.{" "}
               <a
-                href="https://aurora-stack.vercel.app/"
+                href="https://app.usespara.com/"
                 className="text-foreground hover:text-foreground/70 underline underline-offset-2 transition-colors"
               >
                 Create a free account

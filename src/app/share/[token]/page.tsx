@@ -240,7 +240,7 @@ export default function SharePage({ params }: Props) {
           <p className="text-xs text-muted-foreground">
             Save and share your own favorite links.{" "}
             <a
-              href="https://aurora-stack.vercel.app/"
+              href="https://app.usespara.com/"
               className="text-foreground hover:text-foreground/70 underline underline-offset-2 transition-colors"
             >
               Create a free account

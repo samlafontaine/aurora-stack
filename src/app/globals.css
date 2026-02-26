@@ -27,7 +27,7 @@
 }
 
 .dark {
-  /* Tuned to match original LinkStash dark palette */
+  /* Tuned to match original Spara dark palette */
   --background: oklch(0.143 0 0);      /* #0d0d0d */
   --foreground: oklch(0.90 0 0);       /* #e4e4e7 */
   --card: oklch(0.178 0 0);            /* #141414 */

@@ -9,7 +9,7 @@ function fetchHtml(url: string): Promise<string> {
       url,
       {
         headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; LinkStash/1.0)",
+          "User-Agent": "Mozilla/5.0 (compatible; Spara/1.0)",
           Accept: "text/html",
         },
         rejectUnauthorized: false,
