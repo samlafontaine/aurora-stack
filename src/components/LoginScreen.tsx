@@ -44,7 +44,7 @@ export function LoginScreen({ onSignIn, onSignUp }: LoginScreenProps) {
       <div className="flex-1 flex flex-col items-center justify-center px-4">
         <div className="w-full max-w-sm flex flex-col items-center gap-8">
           <div className="text-center">
-            <h1 className="text-2xl font-semibold text-foreground tracking-tight">LinkStash</h1>
+            <h1 className="text-2xl font-semibold text-foreground tracking-tight">Spara</h1>
             <p className="text-sm text-muted-foreground mt-1.5">Your personal link library</p>
           </div>
 

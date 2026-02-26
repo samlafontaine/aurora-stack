@@ -128,7 +128,7 @@ export default function Home() {
       <div className="mx-auto max-w-2xl px-4 py-12">
         <header className="mb-10 flex items-start justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-foreground tracking-tight">LinkStash</h1>
+            <h1 className="text-lg font-semibold text-foreground tracking-tight">Spara</h1>
             <p className="text-sm text-muted-foreground mt-0.5">Your personal link library</p>
           </div>
           <div className="flex items-center gap-0">
