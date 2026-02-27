@@ -86,6 +86,12 @@
   button, [role="button"] {
     cursor: pointer;
   }
+  /* Prevent iOS Safari from zooming on input focus */
+  @media (max-width: 768px) {
+    input, textarea, select {
+      font-size: 16px !important;
+    }
+  }
 }
 
 /* Reader view styles */

@@ -10,6 +10,17 @@ export function ThemeToggle() {
 
   useEffect(() => setMounted(true), []);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "t") return;
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement).isContentEditable) return;
+      setTheme(theme === "dark" ? "light" : "dark");
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [theme, setTheme]);
+
   // Render a placeholder on the server to avoid hydration mismatch
   if (!mounted) return <div className="w-8 h-8" />;
 
