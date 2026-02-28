@@ -17,7 +17,7 @@ import type { NewLink } from "@/types/link";
 import { toast } from "sonner";
 
 export default function Home() {
-  const { user, loading, signUp, signIn, signOut } = useAuth();
+  const { user, loading, signUp, signIn, signInWithGoogle, signOut } = useAuth();
   const { shareToken } = useShareToken(user?.id ?? null);
   const [copied, setCopied] = useState(false);
 
@@ -120,7 +120,7 @@ export default function Home() {
 
   // Not logged in
   if (!user) {
-    return <LoginScreen onSignIn={signIn} onSignUp={signUp} />;
+    return <LoginScreen onSignIn={signIn} onSignUp={signUp} onGoogleSignIn={signInWithGoogle} />;
   }
 
   return (
