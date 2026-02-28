@@ -94,7 +94,17 @@ function ReaderContent() {
                 &larr; Back
               </a>
             ) : (
-              <span className="text-sm font-medium text-foreground tracking-tight">Spara</span>
+              <div className="flex flex-col">
+                <a
+                  href="https://usespara.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium text-foreground tracking-tight hover:text-foreground/80 transition-colors"
+                >
+                  Spara
+                </a>
+                <span className="text-xs text-muted-foreground mt-0.5">your links library</span>
+              </div>
             )}
             <TooltipProvider>
               <Tooltip>
