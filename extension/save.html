@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Save to Spara</title>
+  <link rel="stylesheet" href="save.css">
+</head>
+<body>
+  <!-- Loading state -->
+  <div id="loading" class="container">
+    <p class="loading-text">Loading…</p>
+  </div>
+
+  <!-- Not signed in -->
+  <div id="auth" class="container hidden">
+    <p class="auth-text">Sign in to save links</p>
+    <button id="sign-in-btn" class="btn btn-primary">Sign in</button>
+  </div>
+
+  <!-- Save form -->
+  <div id="save-form" class="container hidden">
+    <p id="page-title" class="page-title"></p>
+
+    <label class="label">Tags</label>
+    <div class="tag-input-wrapper">
+      <div id="tags-container" class="tags-container">
+        <input type="text" id="tag-input" placeholder="Add tags…" autocomplete="off">
+      </div>
+      <div id="suggestions" class="suggestions hidden"></div>
+    </div>
+
+    <button id="save-btn" class="btn btn-primary">Save</button>
+    <p id="error" class="error"></p>
+  </div>
+
+  <!-- Success -->
+  <div id="success" class="container hidden">
+    <p class="success-text">Saved!</p>
+  </div>
+
+  <script src="save.js"></script>
+</body>
+</html>

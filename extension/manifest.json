@@ -11,7 +11,8 @@
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     },
-    "default_title": "Save to Spara"
+    "default_title": "Save to Spara",
+    "default_popup": "save.html"
   },
   "background": {
     "service_worker": "background.js"
