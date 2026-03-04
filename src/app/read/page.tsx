@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { SparaLogo } from "@/components/SparaLogo";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { useLinks } from "@/hooks/useLinks";
@@ -94,17 +95,15 @@ function ReaderContent() {
                 &larr; Back
               </a>
             ) : (
-              <div className="flex flex-col">
-                <a
-                  href="https://usespara.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-medium text-foreground tracking-tight hover:text-foreground/80 transition-colors"
-                >
-                  Spara
-                </a>
-                <span className="text-xs text-muted-foreground mt-0.5">your links library</span>
-              </div>
+              <a
+                href="https://usespara.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-lg font-semibold text-foreground tracking-tight hover:text-foreground/80 transition-colors"
+              >
+                <SparaLogo className="h-5 w-5" />
+                Spara
+              </a>
             )}
             <TooltipProvider>
               <Tooltip>
@@ -159,7 +158,15 @@ function ReaderContent() {
               &larr; Back
             </a>
           ) : (
-            <span className="text-sm font-medium text-foreground tracking-tight">Spara</span>
+            <a
+              href="https://usespara.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-lg font-semibold text-foreground tracking-tight hover:text-foreground/80 transition-colors"
+            >
+              <SparaLogo className="h-5 w-5" />
+              Spara
+            </a>
           )}
           <div className="flex items-center gap-1">
             <TooltipProvider>

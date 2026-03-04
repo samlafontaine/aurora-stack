@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { SparaLogo } from "@/components/SparaLogo";
 import { useShareToken } from "@/hooks/useShareToken";
 import type { NewLink } from "@/types/link";
 import { toast } from "sonner";
@@ -128,7 +129,10 @@ export default function Home() {
       <div className="mx-auto max-w-2xl px-4 py-12">
         <header className="mb-10 flex items-start justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-foreground tracking-tight">Spara</h1>
+            <div className="flex items-center gap-2">
+              <SparaLogo className="h-6 w-6" />
+              <h1 className="text-lg font-semibold text-foreground tracking-tight">Spara</h1>
+            </div>
             <p className="text-sm text-muted-foreground mt-0.5">Your personal link library</p>
           </div>
           <div className="flex items-center gap-0">

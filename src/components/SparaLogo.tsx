@@ -1,0 +1,19 @@
+export function SparaLogo({ className }: { className?: string }) {
+  return (
+    <svg
+      width="128"
+      height="128"
+      viewBox="0 0 64 64"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <path
+        d="M16 8H48C49.6569 8 51 9.34315 51 11V58L32 47L13 58V11C13 9.34315 14.3431 8 16 8Z"
+        fill="currentColor"
+      />
+      <rect x="22" y="20" width="22" height="8" rx="4" className="fill-background" />
+      <rect x="19" y="30" width="22" height="8" rx="4" className="fill-background" />
+    </svg>
+  );
+}
