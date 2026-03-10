@@ -9,13 +9,13 @@
 <body>
   <div class="container">
     <h1 class="logo">Spara</h1>
-    <p class="subtitle">Sign in to save links</p>
+    <p id="subtitle" class="subtitle">Sign in to save links</p>
 
     <div id="login-form">
       <input type="email" id="email" placeholder="you@example.com" required>
       <input type="password" id="password" placeholder="Password" required>
       <p id="error" class="error"></p>
-      <button id="sign-in-btn" class="btn btn-primary">Sign in</button>
+      <button id="submit-btn" class="btn btn-primary">Sign in</button>
 
       <div class="divider">
         <span>or</span>
@@ -30,6 +30,14 @@
         </svg>
         Continue with Google
       </button>
+
+      <button id="toggle-mode" type="button" class="toggle-link">Don't have an account? Sign up</button>
+    </div>
+
+    <div id="signup-success" class="hidden">
+      <p class="success-text">Check your inbox</p>
+      <p class="success-hint">We sent a confirmation link to <span id="confirm-email"></span>. Click it to verify your account, then sign in.</p>
+      <button id="back-to-signin" type="button" class="toggle-link">Back to sign in</button>
     </div>
 
     <div id="success" class="hidden">

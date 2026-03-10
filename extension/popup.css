@@ -151,3 +151,24 @@ input:focus {
   color: #a1a1aa;
   text-align: center;
 }
+
+.toggle-link {
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: #71717a;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+  transition: color 0.15s;
+  margin-top: 4px;
+  text-align: center;
+}
+
+.toggle-link:hover {
+  color: #fafafa;
+}
+
+#confirm-email {
+  color: #fafafa;
+}

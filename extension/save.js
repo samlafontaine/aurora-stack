@@ -232,6 +232,11 @@ signInBtn.addEventListener("click", () => {
   window.close();
 });
 
+document.getElementById("sign-up-link").addEventListener("click", () => {
+  chrome.tabs.create({ url: chrome.runtime.getURL("popup.html?mode=signup") });
+  window.close();
+});
+
 saveBtn.addEventListener("click", async () => {
   saveBtn.disabled = true;
   saveBtn.textContent = "Saving…";

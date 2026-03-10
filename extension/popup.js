@@ -4,11 +4,18 @@ const SUPABASE_ANON_KEY =
 
 const emailInput = document.getElementById("email");
 const passwordInput = document.getElementById("password");
-const signInBtn = document.getElementById("sign-in-btn");
+const submitBtn = document.getElementById("submit-btn");
 const googleBtn = document.getElementById("google-btn");
 const errorEl = document.getElementById("error");
 const loginForm = document.getElementById("login-form");
 const successEl = document.getElementById("success");
+const subtitleEl = document.getElementById("subtitle");
+const toggleModeBtn = document.getElementById("toggle-mode");
+const signupSuccessEl = document.getElementById("signup-success");
+const confirmEmailEl = document.getElementById("confirm-email");
+const backToSigninBtn = document.getElementById("back-to-signin");
+
+let isSignUp = false;
 
 function showError(msg) {
   errorEl.textContent = msg;
@@ -35,8 +42,30 @@ function showSuccess() {
   successEl.classList.remove("hidden");
 }
 
-// Email/password sign in
-signInBtn.addEventListener("click", async () => {
+function setMode(signUp) {
+  isSignUp = signUp;
+  clearError();
+  subtitleEl.textContent = isSignUp ? "Create an account to save links" : "Sign in to save links";
+  submitBtn.textContent = isSignUp ? "Create account" : "Sign in";
+  toggleModeBtn.textContent = isSignUp
+    ? "Already have an account? Sign in"
+    : "Don't have an account? Sign up";
+}
+
+// Toggle between sign-in and sign-up
+toggleModeBtn.addEventListener("click", () => {
+  setMode(!isSignUp);
+});
+
+// Back to sign in from confirmation
+backToSigninBtn.addEventListener("click", () => {
+  signupSuccessEl.classList.add("hidden");
+  loginForm.classList.remove("hidden");
+  setMode(false);
+});
+
+// Email/password submit (sign in or sign up)
+submitBtn.addEventListener("click", async () => {
   clearError();
   const email = emailInput.value.trim();
   const password = passwordInput.value;
@@ -46,33 +75,61 @@ signInBtn.addEventListener("click", async () => {
     return;
   }
 
-  signInBtn.disabled = true;
-  signInBtn.textContent = "Signing in…";
+  if (isSignUp && password.length < 6) {
+    showError("Password must be at least 6 characters.");
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = isSignUp ? "Creating account\u2026" : "Signing in\u2026";
 
   try {
-    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    if (isSignUp) {
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      showError(data.error_description || data.msg || "Invalid credentials.");
-      return;
+      if (!res.ok) {
+        showError(data.error_description || data.msg || "Could not create account.");
+        return;
+      }
+
+      // Show confirmation screen
+      confirmEmailEl.textContent = email;
+      loginForm.classList.add("hidden");
+      signupSuccessEl.classList.remove("hidden");
+    } else {
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        showError(data.error_description || data.msg || "Invalid credentials.");
+        return;
+      }
+
+      await saveSession(data);
+      showSuccess();
     }
-
-    await saveSession(data);
-    showSuccess();
   } catch {
     showError("Something went wrong. Please try again.");
   } finally {
-    signInBtn.disabled = false;
-    signInBtn.textContent = "Sign in";
+    submitBtn.disabled = false;
+    submitBtn.textContent = isSignUp ? "Create account" : "Sign in";
   }
 });
 
@@ -132,5 +189,11 @@ googleBtn.addEventListener("click", async () => {
 
 // Allow Enter key to submit
 passwordInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") signInBtn.click();
+  if (e.key === "Enter") submitBtn.click();
 });
+
+// Check for ?mode=signup query param (linked from save.html)
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get("mode") === "signup") {
+  setMode(true);
+}
