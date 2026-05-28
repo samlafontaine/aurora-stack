@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SparaLogo } from "@/components/SparaLogo";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -25,6 +25,22 @@ function ReaderContent() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  const handleScroll = useCallback(() => {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    if (docHeight <= 0) {
+      setProgress(100);
+      return;
+    }
+    setProgress(Math.min(100, (scrollTop / docHeight) * 100));
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [handleScroll]);
 
   const matchingLink = links.find((l) => l.url === url);
 
@@ -148,6 +164,10 @@ function ReaderContent() {
 
   return (
     <div className="min-h-screen bg-background">
+      <div
+        className="fixed top-0 left-0 h-[3px] bg-foreground/80 transition-[width] duration-100 ease-out z-50"
+        style={{ width: `${progress}%` }}
+      />
       <div className="mx-auto max-w-2xl px-4 py-12">
         <header className="mb-10 flex items-center justify-between">
           {user ? (
