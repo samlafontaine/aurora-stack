@@ -85,11 +85,47 @@ async function fetchAllTags(session) {
   }
 }
 
+const FREE_LIMIT = 20;
+
+async function checkCanSave(session) {
+  try {
+    const [countRes, profileRes] = await Promise.all([
+      fetch(
+        `${SUPABASE_URL}/rest/v1/links?select=id&user_id=eq.${session.user.id}`,
+        {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${session.access_token}`,
+            Prefer: "count=exact",
+          },
+        }
+      ),
+      fetch(
+        `${SUPABASE_URL}/rest/v1/profiles?select=subscribed&id=eq.${session.user.id}`,
+        {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        }
+      ),
+    ]);
+    const countHeader = countRes.headers.get("content-range");
+    const total = countHeader ? parseInt(countHeader.split("/")[1], 10) : 0;
+    const profiles = await profileRes.json();
+    const subscribed = profiles[0]?.subscribed ?? false;
+    return subscribed || total < FREE_LIMIT;
+  } catch {
+    return true;
+  }
+}
+
 // --- DOM refs ---
 
 const loadingEl = document.getElementById("loading");
 const authEl = document.getElementById("auth");
 const saveFormEl = document.getElementById("save-form");
+const upgradeEl = document.getElementById("upgrade");
 const successEl = document.getElementById("success");
 const signInBtn = document.getElementById("sign-in-btn");
 const pageTitleEl = document.getElementById("page-title");
@@ -237,6 +273,11 @@ document.getElementById("sign-up-link").addEventListener("click", () => {
   window.close();
 });
 
+document.getElementById("upgrade-btn").addEventListener("click", () => {
+  chrome.tabs.create({ url: APP_URL });
+  window.close();
+});
+
 saveBtn.addEventListener("click", async () => {
   saveBtn.disabled = true;
   saveBtn.textContent = "Saving…";
@@ -312,6 +353,13 @@ async function init() {
 
   tabUrl = tab.url;
   tabTitle = tab.title || tab.url;
+
+  const canSave = await checkCanSave(currentSession);
+  if (!canSave) {
+    hide(loadingEl);
+    show(upgradeEl);
+    return;
+  }
 
   // Fetch suggestions in parallel with UI setup
   const tagsPromise = fetchAllTags(currentSession);
