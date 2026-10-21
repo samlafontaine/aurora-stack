@@ -13,12 +13,16 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { SparaLogo } from "@/components/SparaLogo";
+import { UpgradeModal } from "@/components/UpgradeModal";
 import { useShareToken } from "@/hooks/useShareToken";
 import type { NewLink } from "@/types/link";
 import { toast } from "sonner";
 
+const FREE_LIMIT = 20;
+
 export default function Home() {
-  const { user, loading, signUp, signIn, signInWithGoogle, signOut } = useAuth();
+  const { user, loading, subscribed, refreshSubscription, signUp, signIn, signInWithGoogle, signOut } = useAuth();
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
   const { shareToken } = useShareToken(user?.id ?? null);
   const [copied, setCopied] = useState(false);
 
@@ -37,6 +41,15 @@ export default function Home() {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("upgraded") === "true") {
+      refreshSubscription();
+      toast.success("Welcome to Pro!");
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
+
+  useEffect(() => {
     if (searchOpen) searchInputRef.current?.focus();
   }, [searchOpen]);
 
@@ -46,6 +59,17 @@ export default function Home() {
         setSearchOpen(false);
         setQuery("");
         return;
+      }
+      if (e.key === "a" && !e.metaKey && !e.ctrlKey) {
+        const tag = (e.target as HTMLElement).tagName;
+        if (tag !== "INPUT" && tag !== "TEXTAREA" && !(e.target as HTMLElement).isContentEditable) {
+          if (!subscribed && links.length >= FREE_LIMIT) {
+            e.preventDefault();
+            e.stopPropagation();
+            setUpgradeOpen(true);
+            return;
+          }
+        }
       }
       if (!e.metaKey) return;
       if (e.key === "k") {
@@ -253,6 +277,14 @@ export default function Home() {
 
         <AddLinkForm onAdd={(data: NewLink) => { addLink(data); toast.success("Link added"); }} allTags={allTags} open={addLinkOpen} onOpenChange={setAddLinkOpen} />
 
+        {user && (
+          <UpgradeModal
+            open={upgradeOpen}
+            onOpenChange={setUpgradeOpen}
+            userId={user.id}
+          />
+        )}
+
         {hydrated && (
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <div className="flex items-center justify-between mb-4">
@@ -311,7 +343,13 @@ export default function Home() {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button
-                        onClick={() => setAddLinkOpen(true)}
+                        onClick={() => {
+                          if (!subscribed && links.length >= FREE_LIMIT) {
+                            setUpgradeOpen(true);
+                          } else {
+                            setAddLinkOpen(true);
+                          }
+                        }}
                         className="cursor-pointer inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-accent"
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

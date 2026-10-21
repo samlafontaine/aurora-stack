@@ -7,16 +7,29 @@ import { createClient } from "@/lib/supabase";
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [subscribed, setSubscribed] = useState(false);
   const supabase = createClient();
+
+  const fetchSubscription = async (userId: string) => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("subscribed")
+      .eq("id", userId)
+      .single();
+    setSubscribed(data?.subscribed ?? false);
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      if (session?.user) fetchSubscription(session.user.id);
       setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) fetchSubscription(session.user.id);
+      else setSubscribed(false);
     });
 
     return () => subscription.unsubscribe();
@@ -44,5 +57,9 @@ export function useAuth() {
     await supabase.auth.signOut();
   };
 
-  return { user, loading, signUp, signIn, signInWithGoogle, signOut };
+  const refreshSubscription = () => {
+    if (user) fetchSubscription(user.id);
+  };
+
+  return { user, loading, subscribed, refreshSubscription, signUp, signIn, signInWithGoogle, signOut };
 }
