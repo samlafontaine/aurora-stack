@@ -48,6 +48,16 @@ export default function Home() {
         return;
       }
       if (!e.metaKey) return;
+      if (e.key === "k") {
+        e.preventDefault();
+        if (searchOpen) {
+          setSearchOpen(false);
+          setQuery("");
+        } else {
+          setSearchOpen(true);
+        }
+        return;
+      }
       if (e.key === "1") { e.preventDefault(); setActiveTab("unread"); }
       if (e.key === "2") { e.preventDefault(); setActiveTab("read"); }
       if (e.key === "3") { e.preventDefault(); setActiveTab("favorites"); }
@@ -150,7 +160,7 @@ export default function Home() {
                   </span>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" sideOffset={8}>
-                  Search
+                  Search <kbd className="ml-1.5 font-sans text-[10px] opacity-60">⌘K</kbd>
                 </TooltipContent>
               </Tooltip>
             )}
