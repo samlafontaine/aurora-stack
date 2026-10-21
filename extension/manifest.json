@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Spara",
   "description": "Save any link to your Spara library with one click.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "permissions": ["activeTab", "storage", "identity"],
   "host_permissions": ["https://app.usespara.com/*", "https://khsklfanpzheiubjtxyk.supabase.co/*"],
   "action": {

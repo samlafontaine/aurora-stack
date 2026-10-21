@@ -14,6 +14,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMe
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { SparaLogo } from "@/components/SparaLogo";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { UsageRing } from "@/components/UsageRing";
 import { useShareToken } from "@/hooks/useShareToken";
 import type { NewLink } from "@/types/link";
 import { toast } from "sonner";
@@ -171,6 +172,13 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-0">
             <TooltipProvider>
+            {!subscribed && (
+              <UsageRing
+                used={links.length}
+                limit={FREE_LIMIT}
+                onClick={() => setUpgradeOpen(true)}
+              />
+            )}
             {links.length > 0 && (
               <Tooltip>
                 <TooltipTrigger asChild>
