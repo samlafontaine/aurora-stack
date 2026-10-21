@@ -214,7 +214,7 @@ export default function Home() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Sign out?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    You'll need to use your magic link to sign back in.
+                    You'll need to sign in again to access your feed.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
