@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState, useCallback, Suspense } from "react";
 import { SparaLogo } from "@/components/SparaLogo";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import { useLinks } from "@/hooks/useLinks";
 import { toast } from "sonner";
@@ -19,7 +20,7 @@ interface Article {
 function ReaderContent() {
   const searchParams = useSearchParams();
   const url = searchParams.get("url");
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const { links, markRead, markUnread, toggleFavorite } = useLinks(user?.id ?? null);
   const [article, setArticle] = useState<Article | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +45,31 @@ function ReaderContent() {
   }, [handleScroll]);
 
   const matchingLink = links.find((l) => l.url === url);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement).isContentEditable) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "r" && matchingLink) {
+        e.preventDefault();
+        if (matchingLink.read) {
+          markUnread(matchingLink.id);
+          toast.success("Marked as unread");
+        } else {
+          markRead(matchingLink.id);
+          toast.success("Marked as read");
+        }
+      }
+      if (e.key === "f" && matchingLink) {
+        e.preventDefault();
+        toggleFavorite(matchingLink.id);
+        toast.success(matchingLink.favorited ? "Removed from favorites" : "Added to favorites");
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [matchingLink, markRead, markUnread, toggleFavorite]);
 
   const handleToggleFavorite = () => {
     if (!matchingLink) return;
@@ -207,76 +233,112 @@ function ReaderContent() {
               Spara
             </a>
           )}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                aria-label="Menu"
-                className="cursor-pointer inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <circle cx="12" cy="5" r="1" fill="currentColor" />
-                  <circle cx="12" cy="12" r="1" fill="currentColor" />
-                  <circle cx="12" cy="19" r="1" fill="currentColor" />
-                </svg>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52">
-              <DropdownMenuItem asChild>
-                <a href={url!} target="_blank" rel="noopener noreferrer">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                    <polyline points="15 3 21 3 21 9" />
-                    <line x1="10" y1="14" x2="21" y2="3" />
-                  </svg>
-                  View original
-                </a>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleShare}>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 3v13M7 8l5-5 5 5M20 16v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2" />
-                </svg>
-                {copied ? "Copied!" : "Share article"}
-              </DropdownMenuItem>
+          <div className="flex items-center gap-0">
+            <TooltipProvider>
               {matchingLink && (
-                <DropdownMenuItem onClick={handleToggleFavorite}>
-                  <svg width="15" height="15" viewBox="0 0 16 16" fill={matchingLink.favorited ? "currentColor" : "none"} xmlns="http://www.w3.org/2000/svg" className={matchingLink.favorited ? "text-amber-400" : ""}>
-                    <path d="M8 1.5l1.8 3.6 4 .6-2.9 2.8.7 4L8 10.4l-3.6 1.9.7-4L2.2 5.7l4-.6L8 1.5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
-                  </svg>
-                  {matchingLink.favorited ? "Remove favorite" : "Add to favorites"}
-                </DropdownMenuItem>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={handleToggleRead}
+                      aria-label={matchingLink.read ? "Mark as unread" : "Mark as read"}
+                      className="cursor-pointer inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                    >
+                      {matchingLink.read ? (
+                        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.2" />
+                          <path d="M5 8l2 2 4-4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      ) : (
+                        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.2" />
+                        </svg>
+                      )}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" sideOffset={8}>
+                    {matchingLink.read ? "Mark as unread" : "Mark as read"} <kbd className="ml-1.5 font-sans text-[10px] opacity-60">R</kbd>
+                  </TooltipContent>
+                </Tooltip>
               )}
               {matchingLink && (
-                <DropdownMenuItem onClick={handleToggleRead}>
-                  {matchingLink.read ? (
-                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.2" />
-                      <path d="M5 8l2 2 4-4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={handleToggleFavorite}
+                      aria-label={matchingLink.favorited ? "Unfavorite" : "Favorite"}
+                      className={`cursor-pointer inline-flex items-center justify-center size-8 rounded-md transition-colors ${matchingLink.favorited ? "text-amber-400" : "text-muted-foreground hover:text-amber-400"}`}
+                    >
+                      <svg width="15" height="15" viewBox="0 0 16 16" fill={matchingLink.favorited ? "currentColor" : "none"} xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 1.5l1.8 3.6 4 .6-2.9 2.8.7 4L8 10.4l-3.6 1.9.7-4L2.2 5.7l4-.6L8 1.5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+                      </svg>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" sideOffset={8}>
+                    {matchingLink.favorited ? "Remove from favorites" : "Add to favorites"} <kbd className="ml-1.5 font-sans text-[10px] opacity-60">F</kbd>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </TooltipProvider>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  aria-label="Menu"
+                  className="cursor-pointer inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <circle cx="12" cy="5" r="1" fill="currentColor" />
+                    <circle cx="12" cy="12" r="1" fill="currentColor" />
+                    <circle cx="12" cy="19" r="1" fill="currentColor" />
+                  </svg>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuItem asChild>
+                  <a href={url!} target="_blank" rel="noopener noreferrer">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                      <polyline points="15 3 21 3 21 9" />
+                      <line x1="10" y1="14" x2="21" y2="3" />
+                    </svg>
+                    View original
+                  </a>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleShare}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 3v13M7 8l5-5 5 5M20 16v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2" />
+                  </svg>
+                  {copied ? "Copied!" : "Share article"}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+                  {theme === "dark" ? (
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="4" />
+                      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
                     </svg>
                   ) : (
-                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.2" />
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                     </svg>
                   )}
-                  {matchingLink.read ? "Mark as unread" : "Mark as read"}
+                  Toggle theme
+                  <DropdownMenuShortcut>T</DropdownMenuShortcut>
                 </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-                {theme === "dark" ? (
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="4" />
-                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
-                  </svg>
-                ) : (
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                  </svg>
+                {user && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem variant="destructive" onClick={signOut}>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                      </svg>
+                      Sign out
+                    </DropdownMenuItem>
+                  </>
                 )}
-                Toggle theme
-                <DropdownMenuShortcut>T</DropdownMenuShortcut>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </header>
 
         <article>

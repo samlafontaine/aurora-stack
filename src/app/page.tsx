@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { useLinks } from "@/hooks/useLinks";
 import { useAuth } from "@/hooks/useAuth";
 import { AddLinkForm } from "@/components/AddLinkForm";
+import { SearchToggle } from "@/components/SearchToggle";
 import { LinkList } from "@/components/LinkList";
 import { LoginScreen } from "@/components/LoginScreen";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -169,12 +170,20 @@ export default function Home() {
             </div>
             <p className="text-sm text-muted-foreground mt-0.5">Your personal link library</p>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0">
             {!subscribed && (
               <UsageRing
                 used={links.length}
                 limit={FREE_LIMIT}
                 onClick={() => setUpgradeOpen(true)}
+              />
+            )}
+            {links.length > 0 && (
+              <SearchToggle
+                open={searchOpen}
+                onOpenChange={setSearchOpen}
+                query={query}
+                onQueryChange={setQuery}
               />
             )}
             <DropdownMenu>
@@ -191,16 +200,6 @@ export default function Home() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
-                {links.length > 0 && (
-                  <DropdownMenuItem onClick={() => searchOpen ? (setSearchOpen(false), setQuery("")) : setSearchOpen(true)}>
-                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.2" />
-                      <path d="M10.5 10.5L13.5 13.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-                    </svg>
-                    Search
-                    <DropdownMenuShortcut>⌘K</DropdownMenuShortcut>
-                  </DropdownMenuItem>
-                )}
                 {shareToken && (
                   <DropdownMenuItem onClick={handleCopyShareLink}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
