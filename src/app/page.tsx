@@ -4,13 +4,10 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { useLinks } from "@/hooks/useLinks";
 import { useAuth } from "@/hooks/useAuth";
 import { AddLinkForm } from "@/components/AddLinkForm";
-import { SearchToggle } from "@/components/SearchToggle";
 import { LinkList } from "@/components/LinkList";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { LoginScreen } from "@/components/LoginScreen";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuShortcut } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { SparaLogo } from "@/components/SparaLogo";
 import { UpgradeModal } from "@/components/UpgradeModal";
@@ -18,11 +15,13 @@ import { UsageRing } from "@/components/UsageRing";
 import { useShareToken } from "@/hooks/useShareToken";
 import type { NewLink } from "@/types/link";
 import { toast } from "sonner";
+import { useTheme } from "next-themes";
 
 const FREE_LIMIT = 20;
 
 export default function Home() {
   const { user, loading, subscribed, refreshSubscription, signUp, signIn, signInWithGoogle, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const { shareToken } = useShareToken(user?.id ?? null);
   const [copied, setCopied] = useState(false);
@@ -170,8 +169,7 @@ export default function Home() {
             </div>
             <p className="text-sm text-muted-foreground mt-0.5">Your personal link library</p>
           </div>
-          <div className="flex items-center gap-0">
-            <TooltipProvider>
+          <div className="flex items-center gap-1">
             {!subscribed && (
               <UsageRing
                 used={links.length}
@@ -179,93 +177,63 @@ export default function Home() {
                 onClick={() => setUpgradeOpen(true)}
               />
             )}
-            {links.length > 0 && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="inline-flex">
-                    <SearchToggle
-                      open={searchOpen}
-                      onOpenChange={setSearchOpen}
-                      query={query}
-                      onQueryChange={setQuery}
-                    />
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" sideOffset={8}>
-                  Search <kbd className="ml-1.5 font-sans text-[10px] opacity-60">⌘K</kbd>
-                </TooltipContent>
-              </Tooltip>
-            )}
-            {shareToken && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={handleCopyShareLink}
-                      aria-label="Copy share link"
-                      className="cursor-pointer inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-                    >
-                      {copied ? (
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      ) : (
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M12 3v13M7 8l5-5 5 5M20 16v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2" />
-                        </svg>
-                      )}
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" sideOffset={8}>
-                    {copied ? "Copied!" : "Copy favorites share link"}
-                  </TooltipContent>
-                </Tooltip>
-            )}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="inline-flex">
-                  <ThemeToggle />
-                </span>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" sideOffset={8}>
-                Toggle theme <kbd className="ml-1.5 font-sans text-[10px] opacity-60">t</kbd>
-              </TooltipContent>
-            </Tooltip>
-            <AlertDialog>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="inline-flex">
-                    <AlertDialogTrigger asChild>
-                      <button
-                        aria-label="Sign out"
-                        className="cursor-pointer inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-                      >
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                          <polyline points="16 17 21 12 16 7" />
-                          <line x1="21" y1="12" x2="9" y2="12" />
-                        </svg>
-                      </button>
-                    </AlertDialogTrigger>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" sideOffset={8}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  aria-label="Menu"
+                  className="cursor-pointer inline-flex items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <circle cx="12" cy="5" r="1" fill="currentColor" />
+                    <circle cx="12" cy="12" r="1" fill="currentColor" />
+                    <circle cx="12" cy="19" r="1" fill="currentColor" />
+                  </svg>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                {links.length > 0 && (
+                  <DropdownMenuItem onClick={() => searchOpen ? (setSearchOpen(false), setQuery("")) : setSearchOpen(true)}>
+                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.2" />
+                      <path d="M10.5 10.5L13.5 13.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                    </svg>
+                    Search
+                    <DropdownMenuShortcut>⌘K</DropdownMenuShortcut>
+                  </DropdownMenuItem>
+                )}
+                {shareToken && (
+                  <DropdownMenuItem onClick={handleCopyShareLink}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 3v13M7 8l5-5 5 5M20 16v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2" />
+                    </svg>
+                    {copied ? "Copied!" : "Share favorites"}
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+                  {theme === "dark" ? (
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="4" />
+                      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+                    </svg>
+                  ) : (
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                    </svg>
+                  )}
+                  Toggle theme
+                  <DropdownMenuShortcut>T</DropdownMenuShortcut>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="destructive" onClick={signOut}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
                   Sign out
-                </TooltipContent>
-              </Tooltip>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Sign out?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    You'll need to sign in again to access your feed.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={signOut}>Sign out</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-            </TooltipProvider>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 
