@@ -5,10 +5,21 @@ import type { User } from "@supabase/supabase-js";
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [subscribed, setSubscribed] = useState(false);
+
+  const fetchSubscription = async (userId: string) => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("subscribed")
+      .eq("id", userId)
+      .single();
+    setSubscribed(data?.subscribed ?? false);
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      if (session?.user) fetchSubscription(session.user.id);
       setLoading(false);
     });
 
@@ -16,6 +27,7 @@ export function useAuth() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) fetchSubscription(session.user.id);
     });
 
     return () => subscription.unsubscribe();
@@ -35,5 +47,5 @@ export function useAuth() {
     await supabase.auth.signOut();
   };
 
-  return { user, loading, signIn, signUp, signOut };
+  return { user, loading, subscribed, signIn, signUp, signOut };
 }

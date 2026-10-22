@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Linking,
   Share,
+  Alert,
   Animated,
   PanResponder,
   Dimensions,
@@ -14,6 +15,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { WebView } from "react-native-webview";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import type { Link } from "../hooks/useLinks";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
@@ -26,6 +28,7 @@ interface ReaderScreenProps {
   onMarkRead: (id: string) => void;
   onMarkUnread: (id: string) => void;
   onToggleFavorite: (id: string) => void;
+  onDelete: (id: string) => void;
 }
 
 interface Article {
@@ -175,6 +178,7 @@ export function ReaderScreen({
   onMarkRead,
   onMarkUnread,
   onToggleFavorite,
+  onDelete,
 }: ReaderScreenProps) {
   const insets = useSafeAreaInsets();
   const [article, setArticle] = useState<Article | null>(null);
@@ -184,28 +188,87 @@ export function ReaderScreen({
   const progressAnim = useRef(new Animated.Value(0)).current;
 
   const translateX = useRef(new Animated.Value(0)).current;
+  const deleteTriggered = useRef(false);
+
+  const opacity = translateX.interpolate({
+    inputRange: [-SCREEN_WIDTH, -SWIPE_THRESHOLD, 0, SWIPE_THRESHOLD, SCREEN_WIDTH],
+    outputRange: [0.3, 0.85, 1, 0.85, 0.3],
+    extrapolate: "clamp",
+  });
+
+  const scale = translateX.interpolate({
+    inputRange: [-SCREEN_WIDTH, 0, SCREEN_WIDTH],
+    outputRange: [0.92, 1, 0.92],
+    extrapolate: "clamp",
+  });
+
+  const deleteIndicatorOpacity = translateX.interpolate({
+    inputRange: [-SWIPE_THRESHOLD, -30, 0],
+    outputRange: [1, 0.3, 0],
+    extrapolate: "clamp",
+  });
+
   const panResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: (_evt, gestureState) =>
-        gestureState.moveX < EDGE_WIDTH + 20 &&
-        gestureState.dx > 10 &&
-        Math.abs(gestureState.dy) < Math.abs(gestureState.dx),
+      onMoveShouldSetPanResponder: (_evt, gestureState) => {
+        const fromLeftEdge = gestureState.moveX < EDGE_WIDTH + 20 && gestureState.dx > 10;
+        const fromRightEdge = gestureState.moveX > SCREEN_WIDTH - EDGE_WIDTH - 20 && gestureState.dx < -10;
+        return (fromLeftEdge || fromRightEdge) && Math.abs(gestureState.dy) < Math.abs(gestureState.dx);
+      },
+      onPanResponderGrant: () => {
+        deleteTriggered.current = false;
+      },
       onPanResponderMove: (_evt, gestureState) => {
-        if (gestureState.dx > 0) translateX.setValue(gestureState.dx);
+        translateX.setValue(gestureState.dx);
+        if (gestureState.dx < -SWIPE_THRESHOLD && !deleteTriggered.current) {
+          deleteTriggered.current = true;
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        }
+        if (gestureState.dx > -SWIPE_THRESHOLD + 10 && deleteTriggered.current) {
+          deleteTriggered.current = false;
+        }
       },
       onPanResponderRelease: (_evt, gestureState) => {
         if (gestureState.dx > SWIPE_THRESHOLD) {
           Animated.timing(translateX, {
             toValue: SCREEN_WIDTH,
-            duration: 200,
+            duration: 250,
             useNativeDriver: true,
           }).start(onBack);
+        } else if (gestureState.dx < -SWIPE_THRESHOLD) {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+          Animated.spring(translateX, {
+            toValue: 0,
+            useNativeDriver: true,
+            damping: 20,
+            stiffness: 200,
+            mass: 0.8,
+          }).start();
+          Alert.alert("Delete this link?", "This can't be undone.", [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Delete",
+              style: "destructive",
+              onPress: () => {
+                Animated.timing(translateX, {
+                  toValue: -SCREEN_WIDTH,
+                  duration: 250,
+                  useNativeDriver: true,
+                }).start(() => {
+                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                  onDelete(link.id);
+                  onBack();
+                });
+              },
+            },
+          ]);
         } else {
           Animated.spring(translateX, {
             toValue: 0,
             useNativeDriver: true,
-            tension: 80,
-            friction: 12,
+            damping: 20,
+            stiffness: 200,
+            mass: 0.8,
           }).start();
         }
       },
@@ -244,6 +307,17 @@ export function ReaderScreen({
     } catch {}
   };
 
+  const handleToggleRead = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (link.read) onMarkUnread(link.id);
+    else onMarkRead(link.id);
+  };
+
+  const handleToggleFavorite = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onToggleFavorite(link.id);
+  };
+
   const hostname = (() => {
     try {
       return new URL(link.url).hostname.replace("www.", "");
@@ -253,10 +327,25 @@ export function ReaderScreen({
   })();
 
   return (
-    <Animated.View
-      style={[styles.container, { paddingTop: insets.top, transform: [{ translateX }] }]}
-      {...panResponder.panHandlers}
-    >
+    <View style={styles.container}>
+      {/* Delete indicator behind the screen */}
+      <Animated.View
+        style={[
+          styles.deleteIndicator,
+          { paddingTop: insets.top, opacity: deleteIndicatorOpacity },
+        ]}
+      >
+        <Ionicons name="trash-outline" size={28} color="#ef4444" />
+        <Text style={styles.deleteIndicatorText}>Delete</Text>
+      </Animated.View>
+
+      <Animated.View
+        style={[
+          styles.container,
+          { paddingTop: insets.top, transform: [{ translateX }, { scale }], opacity },
+        ]}
+        {...panResponder.panHandlers}
+      >
       {/* Progress bar */}
       <View style={styles.progressTrack}>
         <Animated.View
@@ -330,9 +419,7 @@ export function ReaderScreen({
       {/* Bottom toolbar */}
       <View style={[styles.toolbar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
         <TouchableOpacity
-          onPress={() =>
-            link.read ? onMarkUnread(link.id) : onMarkRead(link.id)
-          }
+          onPress={handleToggleRead}
           style={styles.toolbarButton}
         >
           <Ionicons
@@ -342,7 +429,7 @@ export function ReaderScreen({
           />
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => onToggleFavorite(link.id)}
+          onPress={handleToggleFavorite}
           style={styles.toolbarButton}
         >
           <Ionicons
@@ -362,11 +449,27 @@ export function ReaderScreen({
         </TouchableOpacity>
       </View>
     </Animated.View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#000" },
+  deleteIndicator: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: 120,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 6,
+  },
+  deleteIndicatorText: {
+    color: "#ef4444",
+    fontSize: 13,
+    fontWeight: "600",
+  },
   progressTrack: { height: 2, backgroundColor: "transparent" },
   progressBar: { height: 2, backgroundColor: "rgba(255,255,255,0.7)" },
   header: {

@@ -12,23 +12,28 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActionSheetIOS,
+  Linking,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import PagerView from "react-native-pager-view";
 import { LinkCard } from "../components/LinkCard";
 import { useLinks, Link } from "../hooks/useLinks";
 import { ReaderScreen } from "./ReaderScreen";
 
+const FREE_LIMIT = 20;
+
 interface FeedScreenProps {
   userId: string;
+  subscribed: boolean;
   onSignOut: () => void;
 }
 
 type Tab = "unread" | "read" | "favorites";
 const TAB_ORDER: Tab[] = ["unread", "read", "favorites"];
 
-export function FeedScreen({ userId, onSignOut }: FeedScreenProps) {
+export function FeedScreen({ userId, subscribed, onSignOut }: FeedScreenProps) {
   const insets = useSafeAreaInsets();
   const {
     links,
@@ -87,6 +92,7 @@ export function FeedScreen({ userId, onSignOut }: FeedScreenProps) {
     }
 
     await addLink({ url, title, tags: [], image: null });
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setAddUrl("");
     setAdding(false);
     setAddModalVisible(false);
@@ -98,12 +104,35 @@ export function FeedScreen({ userId, onSignOut }: FeedScreenProps) {
       {
         text: "Delete",
         style: "destructive",
-        onPress: () => deleteLink(id),
+        onPress: () => {
+          deleteLink(id);
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        },
       },
     ]);
   };
 
+  const handleMarkRead = (id: string) => {
+    markRead(id);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const handleMarkUnread = (id: string) => {
+    markUnread(id);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const handleToggleFavorite = (id: string) => {
+    toggleFavorite(id);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const handleLongPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  };
+
   const handleMenu = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (Platform.OS === "ios") {
       ActionSheetIOS.showActionSheetWithOptions(
         {
@@ -127,11 +156,33 @@ export function FeedScreen({ userId, onSignOut }: FeedScreenProps) {
     const idx = TAB_ORDER.indexOf(tab);
     pagerRef.current?.setPage(idx);
     setActiveTab(tab);
+    Haptics.selectionAsync();
   };
 
   const handlePageSelected = (e: any) => {
     const idx = e.nativeEvent.position;
     setActiveTab(TAB_ORDER[idx]);
+    Haptics.selectionAsync();
+  };
+
+  const handleFabPress = () => {
+    if (!subscribed && links.length >= FREE_LIMIT) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      Alert.alert(
+        "Free limit reached",
+        `You've saved ${links.length} of ${FREE_LIMIT} free links. Upgrade to Pro for unlimited links.`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Upgrade",
+            onPress: () => Linking.openURL("https://app.usespara.com"),
+          },
+        ]
+      );
+      return;
+    }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setAddModalVisible(true);
   };
 
   const currentReadingLink = readingLink
@@ -143,9 +194,12 @@ export function FeedScreen({ userId, onSignOut }: FeedScreenProps) {
       <ReaderScreen
         link={currentReadingLink}
         onBack={() => setReadingLink(null)}
-        onMarkRead={markRead}
-        onMarkUnread={markUnread}
-        onToggleFavorite={toggleFavorite}
+        onMarkRead={handleMarkRead}
+        onMarkUnread={handleMarkUnread}
+        onToggleFavorite={handleToggleFavorite}
+        onDelete={(id: string) => {
+          handleDelete(id);
+        }}
       />
     );
   }
@@ -156,6 +210,8 @@ export function FeedScreen({ userId, onSignOut }: FeedScreenProps) {
     { key: "favorites", label: "Favorites", count: favorites.length },
   ];
 
+  const usageRatio = !subscribed ? links.length / FREE_LIMIT : 0;
+
   const renderList = (data: Link[], emptyMessage: string) => (
     <FlatList
       data={data}
@@ -165,9 +221,10 @@ export function FeedScreen({ userId, onSignOut }: FeedScreenProps) {
           link={item}
           onPress={setReadingLink}
           onDelete={handleDelete}
-          onMarkRead={markRead}
-          onMarkUnread={markUnread}
-          onToggleFavorite={toggleFavorite}
+          onMarkRead={handleMarkRead}
+          onMarkUnread={handleMarkUnread}
+          onToggleFavorite={handleToggleFavorite}
+          onLongPress={handleLongPress}
         />
       )}
       contentContainerStyle={[
@@ -196,7 +253,36 @@ export function FeedScreen({ userId, onSignOut }: FeedScreenProps) {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.logo}>Spara</Text>
+        <View style={styles.headerLeft}>
+          <Text style={styles.logo}>Spara</Text>
+          {!subscribed && (
+            <TouchableOpacity
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                Linking.openURL("https://app.usespara.com");
+              }}
+              style={styles.usageRingContainer}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <View style={styles.usageRing}>
+                <View style={styles.usageRingTrack}>
+                  <View
+                    style={[
+                      styles.usageRingFill,
+                      {
+                        width: `${Math.min(100, usageRatio * 100)}%`,
+                        backgroundColor: usageRatio >= 1 ? "#ef4444" : usageRatio >= 0.8 ? "#f59e0b" : "#666",
+                      },
+                    ]}
+                  />
+                </View>
+                <Text style={[styles.usageText, usageRatio >= 1 && { color: "#ef4444" }]}>
+                  {links.length}/{FREE_LIMIT}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        </View>
         <TouchableOpacity onPress={handleMenu} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <Ionicons name="ellipsis-horizontal" size={22} color="#666" />
         </TouchableOpacity>
@@ -238,7 +324,7 @@ export function FeedScreen({ userId, onSignOut }: FeedScreenProps) {
       {/* FAB */}
       <TouchableOpacity
         style={[styles.fab, { bottom: Math.max(insets.bottom, 16) + 16 }]}
-        onPress={() => setAddModalVisible(true)}
+        onPress={handleFabPress}
         activeOpacity={0.8}
       >
         <Ionicons name="add" size={28} color="#000" />
@@ -309,7 +395,35 @@ const styles = StyleSheet.create({
     paddingTop: 4,
     paddingBottom: 12,
   },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
   logo: { fontSize: 24, fontWeight: "700", color: "#fff", letterSpacing: -0.5 },
+  usageRingContainer: {},
+  usageRing: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  usageRingTrack: {
+    width: 32,
+    height: 3,
+    backgroundColor: "#222",
+    borderRadius: 2,
+    overflow: "hidden",
+  },
+  usageRingFill: {
+    height: 3,
+    borderRadius: 2,
+  },
+  usageText: {
+    fontSize: 11,
+    color: "#666",
+    fontWeight: "500",
+    fontVariant: ["tabular-nums"],
+  },
   tabs: {
     flexDirection: "row",
     paddingHorizontal: 20,

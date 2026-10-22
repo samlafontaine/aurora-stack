@@ -8,7 +8,7 @@ import { LoginScreen } from "./src/screens/LoginScreen";
 import { FeedScreen } from "./src/screens/FeedScreen";
 
 export default function App() {
-  const { user, loading, signIn, signUp, signOut } = useAuth();
+  const { user, loading, subscribed, signIn, signUp, signOut } = useAuth();
 
   if (loading) {
     return (
@@ -24,7 +24,7 @@ export default function App() {
       <SafeAreaProvider>
         <StatusBar style="light" />
         {user ? (
-          <FeedScreen userId={user.id} onSignOut={signOut} />
+          <FeedScreen userId={user.id} subscribed={subscribed} onSignOut={signOut} />
         ) : (
           <LoginScreen onSignIn={signIn} onSignUp={signUp} />
         )}

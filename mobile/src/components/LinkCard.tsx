@@ -8,9 +8,10 @@ interface LinkCardProps {
   onMarkRead: (id: string) => void;
   onMarkUnread: (id: string) => void;
   onToggleFavorite: (id: string) => void;
+  onLongPress?: () => void;
 }
 
-export function LinkCard({ link, onPress, onDelete, onMarkRead, onMarkUnread, onToggleFavorite }: LinkCardProps) {
+export function LinkCard({ link, onPress, onDelete, onMarkRead, onMarkUnread, onToggleFavorite, onLongPress }: LinkCardProps) {
   const hostname = (() => {
     try { return new URL(link.url).hostname.replace("www.", ""); }
     catch { return link.url; }
@@ -21,6 +22,7 @@ export function LinkCard({ link, onPress, onDelete, onMarkRead, onMarkUnread, on
   };
 
   const handleLongPress = () => {
+    onLongPress?.();
     Alert.alert(link.title, undefined, [
       { text: link.read ? "Mark unread" : "Mark read", onPress: () => link.read ? onMarkUnread(link.id) : onMarkRead(link.id) },
       { text: link.favorited ? "Unfavorite" : "Favorite", onPress: () => onToggleFavorite(link.id) },
